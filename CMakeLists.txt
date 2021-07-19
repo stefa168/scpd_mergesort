@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.19)
-project(untitled)
+project(parallel_merge_sort)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(untitled main.cpp)
+add_executable(serial_merge_sort serial_impl/main.cpp)
