@@ -3,8 +3,9 @@
 
 using namespace std;
 
+int *a;
 
-void merge(int *a, int left, int center, int right) {
+void merge(int left, int center, int right) {
     int i = left;
     int j = center + 1;
     int k = 0;
@@ -38,15 +39,16 @@ void merge(int *a, int left, int center, int right) {
     }
 }
 
-void pmerge(int *a, int size) {
+void pmerge(int size) {
     // istantiate first data for the mergesort
-    mergesort_thread_data args;
-    args.a = a;
-    args.left = 0;
-    args.right = size;
+    mergesort_thread_data *args;
+
+    args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+    args->left = 0;
+    args->right = size;
 //    p_merge_sort(&args);
     pthread_t thread;
-    pthread_create(&thread, NULL, p_merge_sort, (void *) &args);
+    pthread_create(&thread, NULL, p_merge_sort, (void *) args);
 
     pthread_join(thread, nullptr);
 }
@@ -54,32 +56,31 @@ void pmerge(int *a, int size) {
 void *p_merge_sort(void *in_args) {
     int center;
 
-//    std::cout << ((mergesort_thread_data *) in_args)->a[0] << std::endl;
-
-    mergesort_thread_data fst_args;
-    mergesort_thread_data snd_args;
+    mergesort_thread_data *fst_args;
+    mergesort_thread_data *snd_args;
     mergesort_thread_data *args = (mergesort_thread_data *) in_args;
-    int *a = args->a;
     int left = args->left;
     int right = args->right;
 
-    pthread_t thread;
+    std::cout << "l: " << left << ", r: " << right << std::endl;
 
+    pthread_t thread;
 
     if (left < right) {
         center = (left + right) / 2;
-        fst_args.a = a;
-        fst_args.left = left;
-        fst_args.right = center;
-        pthread_create(&thread, NULL, p_merge_sort, (void *) &fst_args);
 
-        snd_args.a = a;
-        snd_args.left = center + 1;
-        snd_args.right = right;
-        p_merge_sort(&snd_args);
+        fst_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+        fst_args->left = left;
+        fst_args->right = center;
+        pthread_create(&thread, NULL, p_merge_sort, (void *) fst_args);
+
+        snd_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+        snd_args->left = center + 1;
+        snd_args->right = right;
+        p_merge_sort(snd_args);
 
         pthread_join(thread, nullptr);
-        merge(a, left, center, right);
+        merge(left, center, right);
     }
 
     pthread_exit(nullptr);
@@ -100,7 +101,7 @@ void print_array(int *a, int len) {
 }
 
 int main(int argc, char *argv[]) {
-    int *a, len = 0, i;
+    int len = 0, i;
     double elapsed_time;
 
     if (argc < 3) {
@@ -116,7 +117,7 @@ int main(int argc, char *argv[]) {
 //    print_array(a, len);
 
     clock_t start = clock();
-    pmerge(a, len);
+    pmerge(len);
     clock_t end = clock();
 
 //    cout << "Ordered array" << endl;
