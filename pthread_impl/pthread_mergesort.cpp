@@ -1,16 +1,8 @@
-#include "serial.h"
+#include "pthread_mergesort.h"
+#include <pthread.h>
 
-using std::cout, std::endl, std::string;
+using namespace std;
 
-void merge_sort(int *a, int left, int right) {
-    int center;
-    if (left < right) {
-        center = (left + right) / 2;
-        merge_sort(a, left, center);
-        merge_sort(a, center + 1, right);
-        merge(a, left, center, right);
-    }
-}
 
 void merge(int *a, int left, int center, int right) {
     int i = left;
@@ -46,6 +38,52 @@ void merge(int *a, int left, int center, int right) {
     }
 }
 
+void pmerge(int *a, int size) {
+    // istantiate first data for the mergesort
+    mergesort_thread_data args;
+    args.a = a;
+    args.left = 0;
+    args.right = size;
+//    p_merge_sort(&args);
+    pthread_t thread;
+    pthread_create(&thread, NULL, p_merge_sort, (void *) &args);
+
+    pthread_join(thread, nullptr);
+}
+
+void *p_merge_sort(void *in_args) {
+    int center;
+
+//    std::cout << ((mergesort_thread_data *) in_args)->a[0] << std::endl;
+
+    mergesort_thread_data fst_args;
+    mergesort_thread_data snd_args;
+    mergesort_thread_data *args = (mergesort_thread_data *) in_args;
+    int *a = args->a;
+    int left = args->left;
+    int right = args->right;
+
+    pthread_t thread;
+
+
+    if (left < right) {
+        center = (left + right) / 2;
+        fst_args.a = a;
+        fst_args.left = left;
+        fst_args.right = center;
+        pthread_create(&thread, NULL, p_merge_sort, (void *) &fst_args);
+
+        snd_args.a = a;
+        snd_args.left = center + 1;
+        snd_args.right = right;
+        p_merge_sort(&snd_args);
+
+        pthread_join(thread, nullptr);
+        merge(a, left, center, right);
+    }
+
+    pthread_exit(nullptr);
+}
 
 void print_array(int *a, int len) {
     string end_char;
@@ -60,7 +98,6 @@ void print_array(int *a, int len) {
     }
     cout << endl;
 }
-
 
 int main(int argc, char *argv[]) {
     int *a, len = 0, i;
@@ -79,11 +116,11 @@ int main(int argc, char *argv[]) {
 //    print_array(a, len);
 
     clock_t start = clock();
-    merge_sort(a, 0, len);
+    pmerge(a, len);
     clock_t end = clock();
 
 //    cout << "Ordered array" << endl;
-//    print_array(a, len);
+    print_array(a, 10);
 
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     cout << "elapsed_time: " << elapsed_time << " sec" << endl;
