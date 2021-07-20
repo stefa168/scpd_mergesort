@@ -1,11 +1,9 @@
+#include "serial.h"
 #include <iostream>
 #include <ctime>
+#include "../common/data_loading.h"
 
-void merge_sort(int *a, int left, int right);
-
-void merge(int *a, int left, int center, int right);
-
-void print_array(int *a, int len);
+using std::cout, std::endl, std::string;
 
 void merge_sort(int *a, int left, int right) {
     int center;
@@ -53,7 +51,7 @@ void merge(int *a, int left, int center, int right) {
 
 
 void print_array(int *a, int len) {
-    std::string end_char;
+    string end_char;
     int i;
 
     end_char = ", ";
@@ -61,35 +59,37 @@ void print_array(int *a, int len) {
         if (i == len - 1) {
             end_char = ".";
         }
-        std::cout << a[i] << end_char;
+        cout << a[i] << end_char;
     }
-    std::cout << std::endl;
+    cout << endl;
 }
 
 
-int main() {
-    int *a, len, i;
+int main(int argc, char *argv[]) {
+    int *a, len = 0, i;
     double elapsed_time;
 
-    len = 50;
-
-    a = (int *) malloc(len * sizeof(int));
-    for (i = 0; i < len; i++) {
-        a[i] = rand() % len;
+    if (argc < 3) {
+        std::cerr << "Please specify file path and number count" << endl;
+        return 1;
     }
 
-//    std::cout << "Original array" << std::endl;
+    len = std::stoi(argv[2]);
+
+    a = readDataFromFile(argv[1]);
+
+//    cout << "Original array" << endl;
 //    print_array(a, len);
 
     clock_t start = clock();
     merge_sort(a, 0, len);
     clock_t end = clock();
 
-//    std::cout << "Ordered array" << std::endl;
+//    cout << "Ordered array" << endl;
 //    print_array(a, len);
 
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
-    std::cout << "elapsed_time: " << elapsed_time << " sec" << std::endl;
+    cout << "elapsed_time: " << elapsed_time << " sec" << endl;
 
     return 0;
 }
