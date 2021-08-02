@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
 //    cout << "Ordered array" << endl;
 //    print_array(a, len);
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
-    cout << "elapsed_time: " << elapsed_time << " sec" << endl;
+    cout << "elapsed_time: " << std::fixed << elapsed_time << " sec" << endl;
 
     return 0;
 }
