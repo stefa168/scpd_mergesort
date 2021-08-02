@@ -1,11 +1,12 @@
 #include "pthread_mergesort.h"
+#include <iostream>
+#include <ctime>
 #include <pthread.h>
+#include "../common/data_generation.h"
 
 using namespace std;
 
-int *a;
-
-void merge(int left, int center, int right) {
+void merge(int *a, int left, int center, int right) {
     int i = left;
     int j = center + 1;
     int k = 0;
@@ -39,48 +40,39 @@ void merge(int left, int center, int right) {
     }
 }
 
-void pmerge(int size) {
-    // istantiate first data for the mergesort
-    mergesort_thread_data *args;
-
-    args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
-    args->left = 0;
-    args->right = size;
-//    p_merge_sort(&args);
-    pthread_t thread;
-    pthread_create(&thread, NULL, p_merge_sort, (void *) args);
-
-    pthread_join(thread, nullptr);
-}
-
 void *p_merge_sort(void *in_args) {
-    int center;
-
     mergesort_thread_data *fst_args;
     mergesort_thread_data *snd_args;
-    mergesort_thread_data *args = (mergesort_thread_data *) in_args;
+
+    auto *args = (mergesort_thread_data *) in_args;
     int left = args->left;
     int right = args->right;
+    int center = (left + right) / 2;
 
-    std::cout << "l: " << left << ", r: " << right << std::endl;
+    pthread_t thread_left, thread_right;
 
-    pthread_t thread;
+    // todo stop branching after a minimum array size.
+    if ((right - left) > 50){
+        if (left < right) {
+            fst_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+            fst_args->arr = args->arr;
+            fst_args->left = left;
+            fst_args->right = center;
 
-    if (left < right) {
-        center = (left + right) / 2;
+            snd_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+            snd_args->arr = args->arr;
+            snd_args->left = center + 1;
+            snd_args->right = right;
 
-        fst_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
-        fst_args->left = left;
-        fst_args->right = center;
-        pthread_create(&thread, NULL, p_merge_sort, (void *) fst_args);
+            pthread_create(&thread_left, nullptr, p_merge_sort, (void *) fst_args);
+            pthread_create(&thread_right, nullptr, p_merge_sort, (void *) snd_args);
 
-        snd_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
-        snd_args->left = center + 1;
-        snd_args->right = right;
-        p_merge_sort(snd_args);
-
-        pthread_join(thread, nullptr);
-        merge(left, center, right);
+            pthread_join(thread_left, nullptr);
+            pthread_join(thread_right, nullptr);
+            merge(args->arr, left, center, right);
+        }
+    } else {
+        merge(args->arr, left, center, right);
     }
 
     pthread_exit(nullptr);
@@ -100,8 +92,22 @@ void print_array(int *a, int len) {
     cout << endl;
 }
 
+void pmerge(int *arr, int size) {
+    // instantiate initial data for the mergesort
+    mergesort_thread_data args;
+    args.arr = arr;
+    args.left = 0;
+    args.right = size;
+
+    pthread_t thread;
+    pthread_create(&thread, nullptr, p_merge_sort, &args);
+
+    pthread_join(thread, nullptr);
+}
+
 int main(int argc, char *argv[]) {
-    int len = 0, i;
+    int len;
+    int *a;
     double elapsed_time;
 
     if (argc < 3) {
@@ -113,15 +119,9 @@ int main(int argc, char *argv[]) {
 
     a = readDataFromFile(argv[1]);
 
-//    cout << "Original array" << endl;
-//    print_array(a, len);
-
     clock_t start = clock();
-    pmerge(len);
+    pmerge(a, len);
     clock_t end = clock();
-
-//    cout << "Ordered array" << endl;
-    print_array(a, 10);
 
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     cout << "elapsed_time: " << elapsed_time << " sec" << endl;
