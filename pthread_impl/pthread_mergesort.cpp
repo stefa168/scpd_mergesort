@@ -3,48 +3,16 @@
 #include <ctime>
 #include <pthread.h>
 #include "../common/data_generation.h"
+#include "../common/merge_implementations.h"
 
 using namespace std;
 
-void merge(int *a, int left, int center, int right) {
-    int i = left;
-    int j = center + 1;
-    int k = 0;
-    int b[right - left + 1];
-
-    while (i <= center && j <= right) {
-        if (a[i] <= a[j]) {
-            b[k] = a[i];
-            i++;
-        } else {
-            b[k] = a[j];
-            j++;
-        }
-        k++;
-    }
-
-    while (i <= center) {
-        b[k] = a[i];
-        k++;
-        i++;
-    }
-
-    while (j <= right) {
-        b[k] = a[j];
-        k++;
-        j++;
-    }
-
-    for (k = left; k <= right; k++) {
-        a[k] = b[k - left];
-    }
-}
-
 void *p_merge_sort(void *in_args) {
-    mergesort_thread_data *fst_args;
-    mergesort_thread_data *snd_args;
 
-    auto *args = (mergesort_thread_data *) in_args;
+    ms_task *fst_args;
+    ms_task *snd_args;
+
+    auto *args = (ms_task *) in_args;
     int left = args->left;
     int right = args->right;
     int center = (left + right) / 2;
@@ -52,14 +20,14 @@ void *p_merge_sort(void *in_args) {
     pthread_t thread_left, thread_right;
 
     // todo stop branching after a minimum array size.
-    if ((right - left) > 50){
+    if ((right - left) > 50) {
         if (left < right) {
-            fst_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+            fst_args = (ms_task *) malloc(sizeof(ms_task));
             fst_args->arr = args->arr;
             fst_args->left = left;
             fst_args->right = center;
 
-            snd_args = (mergesort_thread_data *) malloc(sizeof(mergesort_thread_data));
+            snd_args = (ms_task *) malloc(sizeof(ms_task));
             snd_args->arr = args->arr;
             snd_args->left = center + 1;
             snd_args->right = right;
@@ -78,23 +46,9 @@ void *p_merge_sort(void *in_args) {
     pthread_exit(nullptr);
 }
 
-void print_array(int *a, int len) {
-    string end_char;
-    int i;
-
-    end_char = ", ";
-    for (i = 0; i < len; i++) {
-        if (i == len - 1) {
-            end_char = ".";
-        }
-        cout << a[i] << end_char;
-    }
-    cout << endl;
-}
-
 void pmerge(int *arr, int size) {
     // instantiate initial data for the mergesort
-    mergesort_thread_data args;
+    ms_task args;
     args.arr = arr;
     args.left = 0;
     args.right = size;
@@ -106,7 +60,7 @@ void pmerge(int *arr, int size) {
 }
 
 int main(int argc, char *argv[]) {
-    int len;
+    uint64_t len;
     int *a;
     double elapsed_time;
 
@@ -115,9 +69,10 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    len = std::stoi(argv[2]);
+    len = std::stoull(argv[2]);
 
-    a = readDataFromFile(argv[1]);
+//    a = readDataFromFile(argv[1]);
+    a = arrayGenerator(len);
 
     clock_t start = clock();
     pmerge(a, len);
