@@ -1,4 +1,7 @@
 #include "serial.h"
+#include <iostream>
+#include <ctime>
+#include "../common/data_generation.h"
 
 using std::cout, std::endl, std::string;
 

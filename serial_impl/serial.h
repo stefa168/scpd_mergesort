@@ -1,8 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <ctime>
-#include "../common/data_generation.h"
+#include <cstdint>
 
 void merge_sort(int *a, uint64_t left, uint64_t right);
 
