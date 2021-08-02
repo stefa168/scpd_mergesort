@@ -1,8 +1,9 @@
 #include "data_generation.h"
 #include <string>
 #include <fstream>
+#include <iostream>
 
-using std::string, std::stoi;
+using std::string, std::stoi, std::cout, std::endl;
 
 int *readDataFromFile(const string &file_path) {
     std::ifstream MyFile(file_path);
