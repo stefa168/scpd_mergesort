@@ -2,8 +2,8 @@
 
 using std::cout, std::endl, std::string;
 
-void merge_sort(int *a, int left, int right) {
-    int center;
+void merge_sort(int *a, uint64_t left, uint64_t right) {
+    uint64_t center;
     if (left < right) {
         center = (left + right) / 2;
         merge_sort(a, left, center);
@@ -12,11 +12,12 @@ void merge_sort(int *a, int left, int right) {
     }
 }
 
-void merge(int *a, int left, int center, int right) {
-    int i = left;
-    int j = center + 1;
-    int k = 0;
-    int b[right - left + 1];
+void merge(int *a, uint64_t left, uint64_t center, uint64_t right) {
+    uint64_t i = left;
+    uint64_t j = center + 1;
+    uint64_t k = 0;
+//    int b[right - left + 1];
+    int *b = static_cast<int *>(calloc(right - left + 1, sizeof(int)));
 
     while (i <= center && j <= right) {
         if (a[i] <= a[j]) {
@@ -44,12 +45,14 @@ void merge(int *a, int left, int center, int right) {
     for (k = left; k <= right; k++) {
         a[k] = b[k - left];
     }
+
+    free(b);
 }
 
 
-void print_array(int *a, int len) {
+void print_array(int *a, uint64_t len) {
     string end_char;
-    int i;
+    uint64_t i;
 
     end_char = ", ";
     for (i = 0; i < len; i++) {
@@ -63,7 +66,8 @@ void print_array(int *a, int len) {
 
 
 int main(int argc, char *argv[]) {
-    int *a, len = 0, i;
+    int *a;
+    uint64_t len = 0, i;
     double elapsed_time;
 
     if (argc < 3) {
@@ -71,9 +75,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    len = std::stoi(argv[2]);
+    len = std::stoull(argv[2]);
 
-    a = readDataFromFile(argv[1]);
+    cout << len << std::endl;
+
+//    a = readDataFromFile(argv[1]);
+    a = arrayGenerator(len);
 
 //    cout << "Original array" << endl;
 //    print_array(a, len);
@@ -84,7 +91,6 @@ int main(int argc, char *argv[]) {
 
 //    cout << "Ordered array" << endl;
 //    print_array(a, len);
-
     elapsed_time = double(end - start) / CLOCKS_PER_SEC;
     cout << "elapsed_time: " << elapsed_time << " sec" << endl;
 

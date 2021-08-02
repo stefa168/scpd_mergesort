@@ -1,4 +1,4 @@
-#include "data_loading.h"
+#include "data_generation.h"
 #include <string>
 #include <fstream>
 
@@ -12,13 +12,23 @@ int *readDataFromFile(const string &file_path) {
 
     getline(MyFile, text);
     length = stoi(text);
-    vec = (int *) malloc(length * sizeof(int));
+    vec = (int *) calloc(length, sizeof(int));
 
     while (getline(MyFile, text) && i < length) {
         vec[i++] = stoi(text);
     }
 
     MyFile.close();
+
+    return vec;
+}
+
+int *arrayGenerator(uint64_t size) {
+    int *vec = static_cast<int *>(calloc(size, sizeof(int)));
+
+    for (uint64_t i = 0; i < size; i++) {
+        vec[i] = rand() % size;
+    }
 
     return vec;
 }
