@@ -32,3 +32,17 @@ int *arrayGenerator(uint64_t size) {
 
     return vec;
 }
+
+void print_array(int *a, uint64_t len) {
+    string end_char;
+    uint64_t i;
+
+    end_char = ", ";
+    for (i = 0; i < len; i++) {
+        if (i == len - 1) {
+            end_char = ".";
+        }
+        cout << a[i] << end_char;
+    }
+    cout << endl;
+}

@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -pthread)
 
 
-set(COMMON_LIBS common/data_generation.cpp common/data_generation.h)
+set(COMMON_LIBS common/data_generation.cpp common/data_generation.h common/merge_implementations.cpp common/merge_implementations.h)
 
 add_executable(serial_merge_sort serial_impl/serial.cpp serial_impl/serial.h ${COMMON_LIBS})
 add_executable(pthread_merge_sort pthread_impl/pthread_mergesort.cpp pthread_impl/pthread_mergesort.h ${COMMON_LIBS})
