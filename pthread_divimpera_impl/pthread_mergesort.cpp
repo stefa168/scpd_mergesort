@@ -2,10 +2,14 @@
 #include <iostream>
 #include <ctime>
 #include <pthread.h>
+#include <chrono>
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
 
 using namespace std;
+using std::chrono::steady_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
 
 void *p_merge_sort(void *in_args) {
 
@@ -13,14 +17,14 @@ void *p_merge_sort(void *in_args) {
     ms_task *snd_args;
 
     auto *args = (ms_task *) in_args;
-    int left = args->left;
-    int right = args->right;
-    int center = (left + right) / 2;
+    uint64_t left = args->left;
+    uint64_t right = args->right;
+    uint64_t center = (left + right) / 2;
 
     pthread_t thread_left, thread_right;
 
     // todo stop branching after a minimum array size.
-    if ((right - left) > 50) {
+    if ((right - left) > 5000000) {
         if (left < right) {
             fst_args = (ms_task *) malloc(sizeof(ms_task));
             fst_args->arr = args->arr;
@@ -46,7 +50,7 @@ void *p_merge_sort(void *in_args) {
     pthread_exit(nullptr);
 }
 
-void pmerge(int *arr, int size) {
+void pmerge(int *arr, uint64_t size) {
     // instantiate initial data for the mergesort
     ms_task args;
     args.arr = arr;
@@ -62,7 +66,6 @@ void pmerge(int *arr, int size) {
 int main(int argc, char *argv[]) {
     uint64_t len;
     int *a;
-    double elapsed_time;
 
     if (argc < 3) {
         std::cerr << "Please specify file path and number count" << endl;
@@ -74,12 +77,13 @@ int main(int argc, char *argv[]) {
 //    a = readDataFromFile(argv[1]);
     a = arrayGenerator(len);
 
-    clock_t start = clock();
+    auto start = steady_clock::now();
     pmerge(a, len);
-    clock_t end = clock();
+    auto end = steady_clock::now();
 
-    elapsed_time = double(end - start) / CLOCKS_PER_SEC;
-    cout << "elapsed_time: " << elapsed_time << " sec" << endl;
+    auto totalTime = duration_cast<milliseconds>(end - start);
+
+    cout << totalTime.count() << "ms" << endl;
 
     return 0;
 }

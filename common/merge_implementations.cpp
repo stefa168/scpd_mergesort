@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdint>
 #include "merge_implementations.h"
 
 #define MERGE_ONE_MALLOC_IMPL
