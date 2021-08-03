@@ -1,15 +1,19 @@
 #include "serial.h"
 #include <iostream>
-#include <ctime>
 #include <cstring>
+#include <chrono>
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
 
-using std::cout, std::endl, std::string;
+using std::cout, std::endl, std::flush, std::string;
+using std::chrono::steady_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
 
 void merge_sort(int *a, uint64_t left, uint64_t right) {
+    uint64_t center = (left + right) / 2;
+
     if (left < right) {
-        uint64_t center = (left + right) / 2;
         merge_sort(a, left, center);
         merge_sort(a, center + 1, right);
         merge(a, left, center, right);
@@ -25,26 +29,29 @@ int main(int argc, char *argv[]) {
     uint64_t len = std::stoull(argv[2]);
 
     // a = readDataFromFile(argv[1]);
+    cout << "Generating data... " << flush;
     int *originalArray = arrayGenerator(len);
+    cout << "Done." << endl << flush;
 
-    double totalTime = 0;
+    unsigned long totalTime = 0;
     for (int i = 0; i < 10; ++i) {
         int *t = static_cast<int *>(calloc(len, sizeof(int)));
         memcpy(t, originalArray, len);
 
-        clock_t start = clock();
+        cout << "Run " << i + 1 << "- sorting " << flush;
+
+        auto start = steady_clock::now();
         merge_sort(t, 0, len);
-        clock_t end = clock();
+        auto end = steady_clock::now();
 
         free(t);
 
-        double time = double(end - start) / CLOCKS_PER_SEC;
-        printf("%d: %f\n", i, time);
-
-        totalTime += time;
+        auto runTime = duration_cast<milliseconds>(end - start);
+        cout << "took " << runTime.count() << "ms" << endl << flush;
+        totalTime += runTime.count();
     }
 
-    cout << "elapsed_time: " << std::fixed << (totalTime / 10) << " sec" << endl;
+    cout << "10 Runs took on average " << totalTime / 10 << "ms." << endl;
 
     return 0;
 }
