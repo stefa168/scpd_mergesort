@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
         cout << "Run " << i + 1 << "- sorting " << flush;
 
         auto start = steady_clock::now();
-        merge_sort(t, 0, len);
+        merge_sort(t, b, 0, len-1);
         auto end = steady_clock::now();
 
         free(t);

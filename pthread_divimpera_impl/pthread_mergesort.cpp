@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     cout << "Done." << endl << "Sorting " << flush;
 
     auto start = steady_clock::now();
-    pmerge(a, len);
+    pmerge(originalArray, len-1);
     auto end = steady_clock::now();
 
     auto totalTime = duration_cast<milliseconds>(end - start);
