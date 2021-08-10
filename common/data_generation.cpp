@@ -28,7 +28,7 @@ int *arrayGenerator(uint64_t size) {
     int *vec = static_cast<int *>(calloc(size, sizeof(int)));
 
     for (uint64_t i = 0; i < size; i++) {
-        vec[i] = rand() % size;
+        vec[i] = 1 + rand() % size;
     }
 
     return vec;
@@ -44,6 +44,11 @@ void print_array(int *a, uint64_t len) {
             end_char = ".";
         }
         cout << a[i] << end_char;
+
+        if(i > 20) {
+            cout << "[...]" << endl;
+            break;
+        }
     }
     cout << endl;
 }
