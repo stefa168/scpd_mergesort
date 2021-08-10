@@ -10,13 +10,13 @@ using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
 
-void merge_sort(int *a, uint64_t left, uint64_t right) {
+void merge_sort(int *a, int *b, uint64_t left, uint64_t right) {
     uint64_t center = (left + right) / 2;
 
     if (left < right) {
-        merge_sort(a, left, center);
-        merge_sort(a, center + 1, right);
-        merge(a, left, center, right);
+        merge_sort(a, b, left, center);
+        merge_sort(a, b, center + 1, right);
+        merge(a, b, left, center, right);
     }
 }
 
@@ -34,16 +34,20 @@ int main(int argc, char *argv[]) {
     cout << "Done." << endl << flush;
 
     unsigned long totalTime = 0;
+    int *b = static_cast<int *>(calloc(len, sizeof(int)));
     for (int i = 0; i < 10; ++i) {
         int *t = static_cast<int *>(calloc(len, sizeof(int)));
         memcpy(t, originalArray, len);
 
         cout << "Run " << i + 1 << "- sorting " << flush;
 
+        if(i == 0) print_array(t, len);
+
         auto start = steady_clock::now();
         merge_sort(t, b, 0, len-1);
         auto end = steady_clock::now();
 
+        if(i == 0) print_array(t, len);
         free(t);
 
         auto runTime = duration_cast<milliseconds>(end - start);

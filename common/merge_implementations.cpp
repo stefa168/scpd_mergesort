@@ -1,16 +1,19 @@
 #include <cstdlib>
 #include <cstdint>
+#include <iostream>
 #include "merge_implementations.h"
 
 #define MERGE_ONE_MALLOC_IMPL
 
 #ifdef MERGE_ONE_MALLOC_IMPL
 
-void merge(int *vec, uint64_t low, uint64_t mid, uint64_t top) {
+using std::cout;
+using std::endl;
+
+void merge(int *vec, int *b, uint64_t low, uint64_t mid, uint64_t top) {
     uint64_t i = low;
     uint64_t j = mid + 1;
-    uint64_t k = 0;
-    int *b = static_cast<int *>(calloc(top - low + 1, sizeof(int)));
+    uint64_t k = low;
 
     while (i <= mid && j <= top) {
         if (vec[i] <= vec[j]) {
@@ -36,10 +39,8 @@ void merge(int *vec, uint64_t low, uint64_t mid, uint64_t top) {
     }
 
     for (k = low; k <= top; k++) {
-        vec[k] = b[k - low];
+        vec[k] = b[k];
     }
-
-    free(b);
 }
 
 #else
