@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/c++,cmake,clion,git
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,clion,git
 
+*.bak
+
 ### C++ ###
 # Prerequisites
 *.d

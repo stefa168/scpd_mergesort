@@ -47,10 +47,11 @@ if [ ! -z $code ]; then
 
   echo "code: $code, num_procs: $proc, in: $in, out: $out, len: $len"
 
-  rm a.out
+  rm a.out 2> /dev/null
   mpic++ -std=c++11 $code     #compila
-  mpirun -np $proc ./a.out $in $out $len        # eseguo
-
+  if [ -f "a.out" ]; then
+    mpirun -np $proc ./a.out $in $out $len        # eseguo
+  fi
 else
   echo "No code"
 fi
