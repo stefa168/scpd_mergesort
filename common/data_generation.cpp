@@ -38,6 +38,11 @@ void print_array(int *a, uint64_t len) {
     string end_char;
     uint64_t i;
 
+    if(len == 0) {
+      cout << "empty array" << endl;
+      return;
+    }
+
     end_char = ", ";
     for (i = 0; i < len; i++) {
         if (i == len - 1) {
