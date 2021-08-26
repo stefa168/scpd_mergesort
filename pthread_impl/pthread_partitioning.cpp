@@ -20,13 +20,7 @@ int main(int argc, char *argv[]) {
     pthread_t *threads;
     int num_threads;
 
-    originalArray = common_begin(argc, argv, &len);
-
-    if(argc > 3) {
-      num_threads = std::stoull(argv[3]);
-    } else {
-      num_threads = 8;
-    }
+    originalArray = common_begin(argc, argv, &len, &num_threads);
 
     clock_t start = clock();
 

@@ -57,8 +57,12 @@ serial: bin/serial
 pthread_divetimpera: bin/pthread_divetimpera
 	bin/pthread_divetimpera $(LEN) $(SEED)
 
+# WARN: arguments in bin/pthread_partitioning are positional, so
+# if it defined SEED but not NCO, the code use value of SEED like NCO
+# e.g. make pthread_partitioning LEN=1024 SEED=88
+# we will have 88 threads and a random seed
 pthread_partitioning: bin/pthread_partitioning
-	bin/pthread_partitioning $(LEN) $(SEED) $(NCO)
+	bin/pthread_partitioning $(LEN) $(NCO) $(SEED)
 
 mpi_divetimpera: bin/mpi_divetimpera
 	$(MPIRUN) -np $(NCO) ./bin/mpi_divetimpera $(LEN) $(SEED)

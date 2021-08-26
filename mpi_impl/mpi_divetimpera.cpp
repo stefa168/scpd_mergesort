@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 
     if (myid == 0) {
 
-      array = common_begin(argc, argv, &array_len);
+      array = common_begin(argc, argv, &array_len, NULL);
 
       start = clock();
 

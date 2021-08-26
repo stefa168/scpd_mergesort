@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
 
     if(myid == 0) {
 
-      originalArray = common_begin(argc, argv, &len);
+      originalArray = common_begin(argc, argv, &len, NULL);
 
       start = clock();
 

@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     uint64_t len;
     int *originalArray;
 
-    originalArray = common_begin(argc, argv, &len);
+    originalArray = common_begin(argc, argv, &len, NULL);
 
     clock_t start = clock();
     pmerge(originalArray, len - 1);

@@ -8,12 +8,9 @@ using std::flush;
 using std::cerr;
 
 
-int *arrayGenerator(int size, bool enable_seed, unsigned int seed) {
-  if(enable_seed) {
-    srand(seed);
-  } else {
-    srand(time(NULL));
-  }
+int *arrayGenerator(int size, unsigned int seed) {
+
+  srand(seed);
 
   int *vec = static_cast<int *>(calloc(size, sizeof(int)));
 
@@ -35,24 +32,40 @@ void check_order(int *array, int len){
 }
 
 
-int* common_begin(int argc, char **argv, uint64_t *array_len){
-  bool enable_seed;
+int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
   unsigned int seed;
   int *array;
 
-  if(argc >= 2) {
+  int total_args = 2;
+  if(num_threads != NULL){
+    total_args++;
+  }
+
+  if(argc >= total_args) {
     *array_len = std::stoull(argv[1]);
-    enable_seed = argc > 2;
-    if(enable_seed) {
-      seed = std::stoull(argv[2]);
+
+    if(num_threads != NULL){
+      *num_threads = std::stoull(argv[2]);
     }
+
+    if(argc > total_args) {
+      seed = std::stoull(argv[total_args]);
+    } else {
+      seed = time(NULL);
+    }
+
+//    cout << "len: " << *array_len << ", num_threads: " << (num_threads ? *num_threads : -1) << ", seed: " << seed << endl;
   } else {
-    std::cerr << "Please specify the length of the array and optionally the seed for the random generator" << endl;
+    string str_nthread = "";
+    if(num_threads != NULL){
+      str_nthread = ", number of threads";
+    }
+    std::cerr << "Please specify the length of the array" << str_nthread << " and optionally the seed for the random generator" << endl;
     throw "Missing arguments";
   }
 
   cout << "Generating data... " << flush;
-  array = arrayGenerator(*array_len, enable_seed, seed);
+  array = arrayGenerator(*array_len, seed);
   cout << "Done." << endl << flush;
   print_array(array, *array_len);
 

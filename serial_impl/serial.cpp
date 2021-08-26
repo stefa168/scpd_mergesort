@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
   uint64_t len;
   int *originalArray;
 
-  originalArray = common_begin(argc, argv, &len);
+  originalArray = common_begin(argc, argv, &len, NULL);
   int *tmp_array = (int *) malloc(len * sizeof(int));
 
   clock_t start = clock();
