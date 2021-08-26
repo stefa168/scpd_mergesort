@@ -26,6 +26,13 @@ bin/pthread_divetimpera: build/pthread_divetimpera.o build/data_generation.o bui
 	$(CPP) -pthread -o $@ $^
 
 ################################################
+build/pthread_divetimpera_uncontrolled.o:
+	$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_divetimpera_uncontrolled.cpp -o build/pthread_divetimpera_uncontrolled.o
+
+bin/pthread_divetimpera_uncontrolled: build/pthread_divetimpera_uncontrolled.o build/data_generation.o build/merge_implementations.o
+	$(CPP) -pthread -o $@ $^
+
+################################################
 build/pthread_partitioning.o:
 	$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_partitioning.cpp -o build/pthread_partitioning.o
 
@@ -55,7 +62,11 @@ serial: bin/serial
 	bin/serial $(LEN) $(SEED)
 
 pthread_divetimpera: bin/pthread_divetimpera
-	bin/pthread_divetimpera $(LEN) $(SEED)
+	bin/pthread_divetimpera $(LEN) $(NCO) $(SEED)
+
+pthread_divetimpera_uncontrolled: bin/pthread_divetimpera_uncontrolled
+	bin/pthread_divetimpera_uncontrolled $(LEN) $(SEED)
+
 
 # WARN: arguments in bin/pthread_partitioning are positional, so
 # if it defined SEED but not NCO, the code use value of SEED like NCO
