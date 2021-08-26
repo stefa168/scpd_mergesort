@@ -5,12 +5,6 @@
 using std::cout;
 using std::endl;
 
-typedef struct {
-  uint64_t mitt;
-  uint64_t span;
-  uint64_t left;
-  uint64_t right;
-} mydata_t;
 
 mydata_t **tasks;
 
@@ -21,8 +15,9 @@ pthread_cond_t *cond;
 pthread_mutex_t *mutex;
 
 
-void *worker(void *args){
+void *function_worker(void *args){
   int myidx = *((int *) args);
+  free(args);
   mydata_t *elem;
 
 
@@ -98,8 +93,7 @@ void *worker(void *args){
     pthread_mutex_unlock(&mutex[elem->mitt]);
   }
 
-  free(args);
-  return NULL;
+  return nullptr;
 }
 
 
@@ -125,9 +119,9 @@ int main(int argc, char *argv[]) {
       tmp_idx = (int *) malloc(sizeof(int));
       *tmp_idx = j;
       if(j == 0){
-        pthread_create(&thread_zero, nullptr, worker, (void *) tmp_idx);
+        pthread_create(&thread_zero, nullptr, function_worker, (void *) tmp_idx);
       } else {
-        pthread_create(&tmp_thread, nullptr, worker, (void *) tmp_idx);
+        pthread_create(&tmp_thread, nullptr, function_worker, (void *) tmp_idx);
       }
     }
 

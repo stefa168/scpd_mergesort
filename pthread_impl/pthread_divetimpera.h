@@ -7,12 +7,11 @@
 
 
 typedef struct {
-    int *arr;
-    int *b;
-    uint64_t left;
-    uint64_t right;
-} ms_task;
+  uint64_t mitt;
+  uint64_t span;
+  uint64_t left;
+  uint64_t right;
+} mydata_t;
 
 
-void pmerge(int *arr, uint64_t size);
-void *p_merge_sort(void *in_args);
+void *function_worker(void *args);
