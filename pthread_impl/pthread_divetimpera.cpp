@@ -30,17 +30,27 @@ void *p_merge_sort(void *in_args) {
 
             pthread_t thread_left, thread_right;
             pthread_create(&thread_left, nullptr, p_merge_sort, (void *) fst_args);
+#ifdef TWOP
             pthread_create(&thread_right, nullptr, p_merge_sort, (void *) snd_args);
+#else
+            p_merge_sort(snd_args);
+#endif
 
             pthread_join(thread_left, nullptr);
+#ifdef TWOP
             pthread_join(thread_right, nullptr);
+#endif
             merge(args->arr, args->b, left, center, right);
         }
     } else {
         merge_sort(args->arr, args->b, left, right);
     }
 
+#ifdef TWOP
     pthread_exit(nullptr);
+#else
+    return NULL;
+#endif
 }
 
 void pmerge(int *arr, uint64_t size) {

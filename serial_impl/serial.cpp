@@ -18,6 +18,13 @@ int main(int argc, char *argv[]) {
 
   common_end(start, end, originalArray, len);
 
+#ifdef THEWALL
+  for(int i = 0; i < 10000; i++){
+    std::cout << "#T#H#E##W#A#L#L";
+  }
+  std::cout << "#" << std::endl;
+#endif
+
   free(originalArray);
   free(tmp_array);
 

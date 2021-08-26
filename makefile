@@ -6,28 +6,28 @@ MPIRUN = mpirun
 
 ################################################
 build/data_generation.o:
-	$(CPP) $(CFLAGS) -c common/data_generation.cpp -o build/data_generation.o
+	$(CPP) $(CFLAGS) $(DEFMACRO) -c common/data_generation.cpp -o build/data_generation.o
 
 build/merge_implementations.o:
-	$(CPP) $(CFLAGS) -c common/merge_implementations.cpp -o build/merge_implementations.o
+	$(CPP) $(CFLAGS) $(DEFMACRO) -c common/merge_implementations.cpp -o build/merge_implementations.o
 
 ################################################
 build/serial.o:
-	$(CPP) $(CFLAGS) -c serial_impl/serial.cpp -o build/serial.o
+	$(CPP) $(CFLAGS) $(DEFMACRO) -c serial_impl/serial.cpp -o build/serial.o
 
 bin/serial: build/serial.o build/data_generation.o build/merge_implementations.o
 	$(CPP) -o $@ $^
 
 ################################################
 build/pthread_divetimpera.o:
-	$(CPP) $(CFLAGS) -pthread -c pthread_impl/pthread_divetimpera.cpp -o build/pthread_divetimpera.o
+	$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_divetimpera.cpp -o build/pthread_divetimpera.o
 
 bin/pthread_divetimpera: build/pthread_divetimpera.o build/data_generation.o build/merge_implementations.o
 	$(CPP) -pthread -o $@ $^
 
 ################################################
 build/pthread_partitioning.o:
-	$(CPP) $(CFLAGS) -pthread -c pthread_impl/pthread_partitioning.cpp -o build/pthread_partitioning.o
+	$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_partitioning.cpp -o build/pthread_partitioning.o
 
 bin/pthread_partitioning: build/pthread_partitioning.o build/data_generation.o build/merge_implementations.o
 	$(CPP) -pthread -o $@ $^
@@ -35,14 +35,14 @@ bin/pthread_partitioning: build/pthread_partitioning.o build/data_generation.o b
 
 ################################################
 build/mpi_divetimpera.o:
-	$(MPICPP) $(CFLAGS) -c mpi_impl/mpi_divetimpera.cpp -o build/mpi_divetimpera.o
+	$(MPICPP) $(CFLAGS) $(DEFMACRO) -c mpi_impl/mpi_divetimpera.cpp -o build/mpi_divetimpera.o
 
 bin/mpi_divetimpera: build/mpi_divetimpera.o build/data_generation.o build/merge_implementations.o
 	$(MPICPP) -o $@ $^
 
 ################################################
 build/mpi_partitioning.o:
-	$(MPICPP) $(CFLAGS) -c mpi_impl/mpi_partitioning.cpp -o build/mpi_partitioning.o
+	$(MPICPP) $(CFLAGS) $(DEFMACRO) -c mpi_impl/mpi_partitioning.cpp -o build/mpi_partitioning.o
 
 bin/mpi_partitioning: build/mpi_partitioning.o build/data_generation.o build/merge_implementations.o
 	$(MPICPP) -o $@ $^
@@ -67,7 +67,7 @@ mpi_partitioning: bin/mpi_partitioning
 	$(MPIRUN) -np $(NCO) ./bin/mpi_partitioning $(LEN) $(SEED)
 
 help:
-	@echo "Usage: make [options] [args]"
+	@echo "Usage: make [options] [args] [other flags]"
 	@echo -e "Options: "
 	@echo -e "  serial\t\texecute sequential mergesort."
 	@echo -e "  pthread_divetimpera\texecute pthread mergesort with paradigm divide et impera."
@@ -79,3 +79,10 @@ help:
 	@echo -e "  LEN: length of the array"
 	@echo -e "  NCO: Number of COncorrent -> number of processes/threads (use with mpi and pthread implementions)"
 	@echo -e "  SEED: it is an optional argument and sets the seed of the random generator"
+	@echo ""
+	@echo -e "Other flags can be"
+	@echo -e "  DEFMACRO: to define a macro (e.g. make serial LEN=1024 DEFMACRO=\"-D THEWALL\")"
+	@echo -e "    Warnings:"
+	@echo -e "      - use with caution because macros are applied to all builds of the dependency. Make sure they are not named on different files to avoid unwanted output "
+	@echo -e "      - remember to do \"make clean\" first"
+	@echo ""
