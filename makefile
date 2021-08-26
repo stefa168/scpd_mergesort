@@ -1,8 +1,10 @@
 
-CPP=g++
+CPP = g++
 CFLAGS = -O3 -std=c++11
 MPICPP = mpic++
 MPIRUN = mpirun
+
+# DEFMACRO can be used to insert anything, not just the macro definition
 
 ################################################
 build/data_generation.o:
@@ -67,11 +69,6 @@ pthread_divetimpera: bin/pthread_divetimpera
 pthread_divetimpera_uncontrolled: bin/pthread_divetimpera_uncontrolled
 	bin/pthread_divetimpera_uncontrolled $(LEN) $(SEED)
 
-
-# WARN: arguments in bin/pthread_partitioning are positional, so
-# if it defined SEED but not NCO, the code use value of SEED like NCO
-# e.g. make pthread_partitioning LEN=1024 SEED=88
-# we will have 88 threads and a random seed
 pthread_partitioning: bin/pthread_partitioning
 	bin/pthread_partitioning $(LEN) $(NCO) $(SEED)
 
@@ -84,20 +81,22 @@ mpi_partitioning: bin/mpi_partitioning
 help:
 	@echo "Usage: make [options] [args] [other flags]"
 	@echo -e "Options: "
-	@echo -e "  serial\t\texecute sequential mergesort."
-	@echo -e "  pthread_divetimpera\texecute pthread mergesort with paradigm divide et impera."
-	@echo -e "  pthread_partitioning\texecute pthread mergesort with paradigm partitioning. "
+	@echo -e "  serial\t\t\texecute sequential mergesort."
+	@echo -e "  pthread_divetimpera\t\texecute pthread mergesort with paradigm divide et impera."
+	@echo -e "  pthread_divetimpera_uncontrolled\texecute pthread mergesort with paradigm divide et impera without a limit numbers of threads."
+	@echo -e "  pthread_partitioning\t\texecute pthread mergesort with paradigm partitioning. "
 	@echo -e "  mpi_divetimpera\t\texecute mpi mergesort with paradigm divide et impera. "
 	@echo -e "  mpi_partitioning\t\texecute mpi mergesort with paradigm partitioning. "
 	@echo ""
 	@echo -e "Args can be"
 	@echo -e "  LEN: length of the array"
-	@echo -e "  NCO: Number of COncorrent -> number of processes/threads (use with mpi and pthread implementions)"
+	@echo -e "  NCO: Number of CONcorrents executions -> number of processes/threads (to use with mpi and pthread implementation)"
 	@echo -e "  SEED: it is an optional argument and sets the seed of the random generator"
 	@echo ""
 	@echo -e "Other flags can be"
-	@echo -e "  DEFMACRO: to define a macro (e.g. make serial LEN=1024 DEFMACRO=\"-D THEWALL\")"
-	@echo -e "    Warnings:"
-	@echo -e "      - use with caution because macros are applied to all builds of the dependency. Make sure they are not named on different files to avoid unwanted output "
-	@echo -e "      - remember to do \"make clean\" first"
+	@echo -e "  DEFMACRO: at compile time to define a macro (e.g. make serial LEN=1024 DEFMACRO=\"-D THEWALL\")"
 	@echo ""
+	@echo -e "### WARNINGS ###"
+	@echo -e "- arguments in bin/pthread_partitioning and in bin/pthread_divetimpera are positional, so if it was defined SEED but not NCO the code will use value of SEED like NCO."
+	@echo -e "  e.g. make pthread_partitioning LEN=1024 SEED=88 (we will have 88 threads and a random seed)."
+	@echo -e "- use with caution DEFMACRO because macros are applied to all compilations of files on which the executable is dependent. Make sure they are not named on different files to avoid unwanted outputs."
