@@ -1,61 +1,25 @@
 #include "serial.h"
-#include <iostream>
-#include <cstring>
-#include <chrono>
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
 
-using std::cout, std::endl, std::flush, std::string;
-using std::chrono::steady_clock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
-
-void merge_sort(int *a, int *b, uint64_t left, uint64_t right) {
-    uint64_t center = (left + right) / 2;
-
-    if (left < right) {
-        merge_sort(a, b, left, center);
-        merge_sort(a, b, center + 1, right);
-        merge(a, b, left, center, right);
-    }
-}
+using namespace std;
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        std::cerr << "Please specify file path and number count" << endl;
-        return 1;
-    }
 
-    uint64_t len = std::stoull(argv[2]);
+  uint64_t len;
+  int *originalArray;
 
-    // a = readDataFromFile(argv[1]);
-    cout << "Generating data... " << flush;
-    int *originalArray = arrayGenerator(len);
-    cout << "Done." << endl << flush;
+  originalArray = common_begin(argc, argv, &len);
+  int *tmp_array = (int *) malloc(len * sizeof(int));
 
-    unsigned long totalTime = 0;
-    int *b = static_cast<int *>(calloc(len, sizeof(int)));
-    for (int i = 0; i < 10; ++i) {
-        int *t = static_cast<int *>(calloc(len, sizeof(int)));
-        memcpy(t, originalArray, len);
+  clock_t start = clock();
+  merge_sort(originalArray, tmp_array, 0, len - 1);
+  clock_t end = clock();
 
-        cout << "Run " << i + 1 << "- sorting " << flush;
+  common_end(start, end, originalArray, len);
 
-        if(i == 0) print_array(t, len);
+  free(originalArray);
+  free(tmp_array);
 
-        auto start = steady_clock::now();
-        merge_sort(t, b, 0, len-1);
-        auto end = steady_clock::now();
-
-        if(i == 0) print_array(t, len);
-        free(t);
-
-        auto runTime = duration_cast<milliseconds>(end - start);
-        cout << "took " << runTime.count() << "ms" << endl << flush;
-        totalTime += runTime.count();
-    }
-
-    cout << "10 Runs took on average " << totalTime / 10 << "ms." << endl;
-
-    return 0;
+  return 0;
 }

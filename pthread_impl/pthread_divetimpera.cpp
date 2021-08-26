@@ -1,24 +1,8 @@
-#include "pthread_mergesort.h"
-#include <iostream>
-#include <pthread.h>
-#include <chrono>
+#include "pthread_divetimpera.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
 
-using std::cout, std::endl, std::flush, std::string;
-using std::chrono::steady_clock;
-using std::chrono::duration_cast;
-using std::chrono::milliseconds;
 
-void merge_sort(int *a, int *b, uint64_t left, uint64_t right) {
-    uint64_t center = (left + right) / 2;
-
-    if (left < right) {
-        merge_sort(a, b, left, center);
-        merge_sort(a, b, center + 1, right);
-        merge(a, b, left, center, right);
-    }
-}
 
 void *p_merge_sort(void *in_args) {
     auto *args = (ms_task *) in_args;
@@ -77,28 +61,14 @@ int main(int argc, char *argv[]) {
     uint64_t len;
     int *originalArray;
 
-    if (argc < 3) {
-        std::cerr << "Please specify file path and number count" << endl;
-        return 1;
-    }
+    originalArray = common_begin(argc, argv, &len);
 
-    len = std::stoull(argv[2]);
+    clock_t start = clock();
+    pmerge(originalArray, len - 1);
+    clock_t end = clock();
 
-    cout << "Generating data... " << flush;
-    originalArray = arrayGenerator(len);
-    cout << "Done." << endl << flush;
+    common_end(start, end, originalArray, len);
+    free(originalArray);
 
-    print_array(originalArray, len);
-
-    cout << "Run sorting " << flush;
-
-    auto start = steady_clock::now();
-    pmerge(originalArray, len-1);
-    auto end = steady_clock::now();
-
-    auto runTime = duration_cast<milliseconds>(end - start);
-    cout << "took " << runTime.count() << "ms" << endl << flush;
-
-    print_array(originalArray, len);
     return 0;
 }

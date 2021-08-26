@@ -2,6 +2,9 @@
 
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <pthread.h>
+#include <chrono>
 
 typedef struct {
     int *arr;
@@ -12,6 +15,4 @@ typedef struct {
 
 void merge_sort(int *a, uint64_t left, uint64_t right);
 
-void pmerge(int *arr, uint64_t size);
-
-void *p_merge_sort(void *in_args);
+void* p_merge_sort(void *in_args);

@@ -1,0 +1,81 @@
+
+CPP=g++
+CFLAGS = -O3 -std=c++11
+MPICPP = mpic++
+MPIRUN = mpirun
+
+################################################
+build/data_generation.o:
+	$(CPP) $(CFLAGS) -c common/data_generation.cpp -o build/data_generation.o
+
+build/merge_implementations.o:
+	$(CPP) $(CFLAGS) -c common/merge_implementations.cpp -o build/merge_implementations.o
+
+################################################
+build/serial.o:
+	$(CPP) $(CFLAGS) -c serial_impl/serial.cpp -o build/serial.o
+
+bin/serial: build/serial.o build/data_generation.o build/merge_implementations.o
+	$(CPP) -o $@ $^
+
+################################################
+build/pthread_divetimpera.o:
+	$(CPP) $(CFLAGS) -pthread -c pthread_impl/pthread_divetimpera.cpp -o build/pthread_divetimpera.o
+
+bin/pthread_divetimpera: build/pthread_divetimpera.o build/data_generation.o build/merge_implementations.o
+	$(CPP) -pthread -o $@ $^
+
+################################################
+build/pthread_partitioning.o:
+	$(CPP) $(CFLAGS) -pthread -c pthread_impl/pthread_partitioning.cpp -o build/pthread_partitioning.o
+
+bin/pthread_partitioning: build/pthread_partitioning.o build/data_generation.o build/merge_implementations.o
+	$(CPP) -pthread -o $@ $^
+
+
+################################################
+build/mpi_divetimpera.o:
+	$(MPICPP) $(CFLAGS) -c mpi_impl/mpi_divetimpera.cpp -o build/mpi_divetimpera.o
+
+bin/mpi_divetimpera: build/mpi_divetimpera.o build/data_generation.o build/merge_implementations.o
+	$(MPICPP) -o $@ $^
+
+################################################
+build/mpi_partitioning.o:
+	$(MPICPP) $(CFLAGS) -c mpi_impl/mpi_partitioning.cpp -o build/mpi_partitioning.o
+
+bin/mpi_partitioning: build/mpi_partitioning.o build/data_generation.o build/merge_implementations.o
+	$(MPICPP) -o $@ $^
+
+################################################
+clean:
+	rm -f build/* bin/*
+
+serial: bin/serial
+	bin/serial $(LEN) $(SEED)
+
+pthread_divetimpera: bin/pthread_divetimpera
+	bin/pthread_divetimpera $(LEN) $(SEED)
+
+pthread_partitioning: bin/pthread_partitioning
+	bin/pthread_partitioning $(LEN) $(SEED) $(NCO)
+
+mpi_divetimpera: bin/mpi_divetimpera
+	$(MPIRUN) -np $(NCO) ./bin/mpi_divetimpera $(LEN) $(SEED)
+
+mpi_partitioning: bin/mpi_partitioning
+	$(MPIRUN) -np $(NCO) ./bin/mpi_partitioning $(LEN) $(SEED)
+
+help:
+	@echo "Usage: make [options] [args]"
+	@echo -e "Options: "
+	@echo -e "  serial\t\texecute sequential mergesort."
+	@echo -e "  pthread_divetimpera\texecute pthread mergesort with paradigm divide et impera."
+	@echo -e "  pthread_partitioning\texecute pthread mergesort with paradigm partitioning. "
+	@echo -e "  mpi_divetimpera\t\texecute mpi mergesort with paradigm divide et impera. "
+	@echo -e "  mpi_partitioning\t\texecute mpi mergesort with paradigm partitioning. "
+	@echo ""
+	@echo -e "Args can be"
+	@echo -e "  LEN: length of the array"
+	@echo -e "  NCO: Number of COncorrent -> number of processes/threads (use with mpi and pthread implementions)"
+	@echo -e "  SEED: it is an optional argument and sets the seed of the random generator"
