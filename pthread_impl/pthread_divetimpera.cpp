@@ -127,9 +127,6 @@ int main(int argc, char *argv[]) {
 
     }
 
-    sleep(1);
-
-
     mydata_t *main_task = (mydata_t *) malloc(sizeof(mydata_t));
     main_task->mitt = -1;
     main_task->left = 0;
