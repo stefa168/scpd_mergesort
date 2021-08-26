@@ -1,11 +1,12 @@
 #include <mpi.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <stack>
 #include <string>
 #include <ctime>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 
@@ -15,9 +16,8 @@ void merge_size(int *, int *, int, int);
 
 void merge(int *vec, int *b, int low, int mid, int top);
 void print_array(int *a, int len);
-void write_data_to_file(int *a, int len, std::string file_path, double merge_time);
-int *readDataFromFile(const string &file_path);
-int *arrayGenerator(int size);
+void check_order(int *a, int len);
+int *arrayGenerator(int size, bool enable_seed, unsigned int seed);
 
 
 int main(int argc, char** argv) {
@@ -34,67 +34,76 @@ int main(int argc, char** argv) {
     double elapsed_time;
 
     int len;
+    unsigned int seed;
+    bool enable_seed;
     int* originalArray;
 
 
     if(myid == 0) {
 
-      if (argc < 3) {
-          std::cerr << "Please specify input file, output file path" << endl;
-          return 1;
+      if(argc >= 2) {
+        len = std::stoull(argv[1]);
+        enable_seed = argc > 2;
+        if(enable_seed) {
+          seed = std::stoull(argv[2]);
+        }
+      } else {
+        std::cerr << "Please specify the length of the array and optionally the seed for the random generator" << endl;
+        throw "Missing arguments";
       }
 
-      len = std::stoull(argv[3]);
       cout << "Generating data... " << flush;
-      originalArray = arrayGenerator(len);
+      originalArray = arrayGenerator(len, enable_seed, seed);
       cout << "Done." << endl << flush;
 
       start = clock();
 
     }
 
-    // send len array to all process
+    // send len array to all process in broadcast
     MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-    /********** Divide the array in equal-sized chunks **********/
+    // divide array into equals subarrays
     int size = len / num_procs;
 
-
-    /********** Send each subarray to each process **********/
-    int *sub_array = (int *) malloc(size * sizeof(int));
+    // send the subarrays at other processes
+    int *sub_array = (int *) malloc(size * sizeof(int));;
     MPI_Scatter(originalArray, size, MPI_INT, sub_array, size, MPI_INT, 0, MPI_COMM_WORLD);
 
-    /********** Perform the merge_sort on each process **********/
+    // every process orders its subarray
     int *tmp_array = (int *) malloc(size * sizeof(int));
     merge_sort(sub_array, tmp_array, 0, (size - 1));
 
-    /********** Gather the sorted subarrays into one **********/
+
     int *sorted = NULL;
     if(myid == 0) {
         sorted = (int *) malloc(len * sizeof(int));
     }
 
+    // gather all subarray in the "main" process
     MPI_Gather(sub_array, size, MPI_INT, sorted, size, MPI_INT, 0, MPI_COMM_WORLD);
 
-    /********** reorder all size subarray **********/
     if(myid == 0) {
 
       int *other_array = (int *) malloc(len * sizeof(int));
-//		  merge_sort(sorted, other_array, 0, (len - 1));
-      merge_size(sorted, other_array, size, len);
 
+      // reorder all subarray (already ordered)
+#ifdef CLASSIC_MERGE
+      merge_sort(sorted, other_array, 0, (len - 1));
+#else
+      merge_size(sorted, other_array, size, len);
+#endif
 
       end = clock();
       elapsed_time = double(end - start) / CLOCKS_PER_SEC;
       std::cout << "elapsed_time: " << elapsed_time << " sec" << std::endl;
 
       print_array(sorted, len);
-
-      write_data_to_file(sorted, len, argv[2], elapsed_time);
+      check_order(sorted, len);
 
       /********** Clean up root **********/
       free(sorted);
-  free(other_array);
+      free(other_array);
     }
 
     /********** Clean up rest **********/
@@ -120,7 +129,11 @@ void merge_size(int *a, int *b, int size, int len){
 
     for(i = 0; i < num_idx; i++){
         indexes[i].i = i * size;
-        indexes[i].max = (i + 1) * size;
+        if(i == num_idx - 1){
+          indexes[i].max = len;
+        } else {
+          indexes[i].max = (i + 1) * size;
+        }
     }
 
     for(k = 0; k < len; k++){
@@ -157,17 +170,6 @@ void merge_sort(int *a, int *b, int l, int r) {
 
 
 /**************************************************/
-void write_data_to_file(int *a, int len, std::string file_path, double merge_time) {
-    int i;
-    std::ofstream MyFile(file_path);
-
-    MyFile << "len: " << len << ", merge time: " << merge_time <<"\n";
-    for(i = 0; i < len; i++){
-        MyFile << a[i] << "\n";
-    }
-    MyFile.close();
-}
-
 
 void merge(int *vec, int *b, int low, int mid, int top) {
     int i = low;
@@ -202,35 +204,30 @@ void merge(int *vec, int *b, int low, int mid, int top) {
     }
 }
 
+int *arrayGenerator(int size, bool enable_seed, unsigned int seed) {
+  if(enable_seed) {
+    srand(seed);
+  } else {
+    srand(time(NULL));
+  }
 
+  int *vec = static_cast<int *>(calloc(size, sizeof(int)));
 
-int *readDataFromFile(const string &file_path) {
-    std::ifstream MyFile(file_path);
-    string text;
-    int length, i = 0;
-    int *vec;
+  for (int i = 0; i < size; i++) {
+      vec[i] = 1 + rand() % size;
+  }
 
-    getline(MyFile, text);
-    length = std::stoi(text);
-    vec = (int *) calloc(length, sizeof(int));
-
-    while (getline(MyFile, text) && i < length) {
-        vec[i++] = std::stoi(text);
-    }
-
-    MyFile.close();
-
-    return vec;
+  return vec;
 }
 
-int *arrayGenerator(int size) {
-    int *vec = static_cast<int *>(calloc(size, sizeof(int)));
-
-    for (int i = 0; i < size; i++) {
-        vec[i] = 1 + rand() % size;
+void check_order(int *array, int len){
+  for(int i = 0; i < len - 1; i++){
+    if(array[i] > array[i + 1]) {
+      std::cerr << "Values [" << array[i] << ", " << array[i+1] << "] aren't ordered. Their positions are [" << i << ", " << i+1 << "]" << endl;
+      throw "Result array not sorted";
     }
-
-    return vec;
+  }
+  cout << "Result array correctely ordered" << endl;
 }
 
 void print_array(int *a, int len) {

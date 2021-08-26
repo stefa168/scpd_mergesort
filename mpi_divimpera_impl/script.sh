@@ -2,17 +2,17 @@
 
 while [ $# -gt 0 ]; do
   case "$1" in
+    --flags=*)
+      flags="${1#*=}"
+      ;;
     --code=*)
       code="${1#*=}"
       ;;
     --proc=*)
       proc="${1#*=}"
       ;;
-    --in=*)
-      in="${1#*=}"
-      ;;
-    --out=*)
-      out="${1#*=}"
+    --seed=*)
+      seed="${1#*=}"
       ;;
     --len=*)
       len="${1#*=}"
@@ -33,24 +33,22 @@ if [ ! -z $code ]; then
     proc=4
   fi
 
-  if [ -z $in ]; then
-    in="../File_to_order.txt"
-  fi
-
-  if [ -z $out ]; then
-    out="output.txt"
-  fi
-
   if [ -z $len ]; then
     len=16
   fi
 
-  echo "code: $code, num_procs: $proc, in: $in, out: $out, len: $len"
+  echo "code: \"$code\", flags: \"$flags\", procs: \"$proc\", len: \"$len\", seed: \"$seed\""
 
   rm a.out 2> /dev/null
-  mpic++ -std=c++11 $code     #compila
+
+  # g++ -O3 ../common/data_generation.cpp -o data.o
+  # g++ -O3 ../common/merge_implementations.cpp -o merge.o
+  # mpic++ -O3 data.o merge.o -std=c++11 $code     #compila
+  set -x
+  mpic++ $flags -O3 -std=c++11 $code
+
   if [ -f "a.out" ]; then
-    mpirun -np $proc ./a.out $in $out $len        # eseguo
+    mpirun -np $proc ./a.out $len $seed       # eseguo
   fi
 else
   echo "No code"

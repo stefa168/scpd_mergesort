@@ -10,13 +10,12 @@
 using namespace std;
 
 
-void merge_sort(int *, int *, int, int);
+void merge_sort(int *vec, int *b, int left, int right);
 
 void merge(int *vec, int *b, int low, int mid, int top);
 void print_array(int *a, int len);
-void write_data_to_file(int *a, int len, std::string file_path, double merge_time);
-int *readDataFromFile(const string &file_path);
-int *arrayGenerator(int size);
+void check_order(int *a, int len);
+int *arrayGenerator(int size, bool enable_seed, unsigned int seed);
 
 
 /*
@@ -47,6 +46,8 @@ int main(int argc, char** argv) {
     MPI_Status status;
 
     int *array, *tmp_array, array_len;
+    unsigned int seed;
+    bool enable_seed;
 
     clock_t start, end;
     double elapsed_time;
@@ -55,24 +56,31 @@ int main(int argc, char** argv) {
 
 
     if (myid == 0) {
-        if (argc < 3) {
-            std::cerr << "Please specify input file, output file path" << endl;
-            throw "Missing arguments";
+
+      if(argc >= 2) {
+        array_len = std::stoull(argv[1]);
+        enable_seed = argc > 2;
+        if(enable_seed) {
+          seed = std::stoull(argv[2]);
         }
+      } else {
+        std::cerr << "Please specify the length of the array and optionally the seed for the random generator" << endl;
+        throw "Missing arguments";
+      }
 
-        array_len = std::stoull(argv[3]);
-        cout << "Generating data... " << flush;
-        array = arrayGenerator(array_len);
-        cout << "Done." << endl << flush;
-        tmp_array = (int *) malloc(array_len * sizeof(int));
 
-        print_array(array, array_len);
+      cout << "Generating data... " << flush;
+      array = arrayGenerator(array_len, enable_seed, seed);
+      cout << "Done." << endl << flush;
+      tmp_array = (int *) malloc(array_len * sizeof(int));
 
-        start = clock();
+      print_array(array, array_len);
 
-        // span between the myid and the id of the other processes based on the level of the tree you are working on
-        span = num_procs / 2;
-        init_span = span;
+      start = clock();
+
+      // span between the myid and the id of the other processes based on the level of the tree you are working on
+      span = num_procs / 2;
+      init_span = span;
     } else {
       // processes in the internal nodes of the tree: receive all data (span, array_len and array)
       MPI_Recv(&span, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
@@ -134,8 +142,7 @@ int main(int argc, char** argv) {
       std::cout << "elapsed_time: " << elapsed_time << " sec" << std::endl;
 
       print_array(array, array_len);
-
-      write_data_to_file(array, array_len, argv[2], elapsed_time);
+      check_order(array, array_len);
 
     } else {
       // send subarray sorted
@@ -162,7 +169,6 @@ void merge_sort(int *a, int *b, int l, int r) {
         merge(a, b, l, m, r);
     }
 }
-
 
 
 /*****************************************************/
@@ -200,44 +206,30 @@ void merge(int *vec, int *b, int low, int mid, int top) {
     }
 }
 
-void write_data_to_file(int *a, int len, std::string file_path, double merge_time) {
-    int i;
-    std::ofstream MyFile(file_path);
+int *arrayGenerator(int size, bool enable_seed, unsigned int seed) {
+  if(enable_seed) {
+    srand(seed);
+  } else {
+    srand(time(NULL));
+  }
 
-    MyFile << "len: " << len << ", merge time: " << merge_time <<"\n";
-    for(i = 0; i < len; i++){
-        MyFile << a[i] << "\n";
-    }
-    MyFile.close();
+  int *vec = static_cast<int *>(calloc(size, sizeof(int)));
+
+  for (int i = 0; i < size; i++) {
+      vec[i] = 1 + rand() % size;
+  }
+
+  return vec;
 }
 
-int *readDataFromFile(const string &file_path) {
-    std::ifstream MyFile(file_path);
-    string text;
-    int length, i = 0;
-    int *vec;
-
-    getline(MyFile, text);
-    length = std::stoi(text);
-    vec = (int *) calloc(length, sizeof(int));
-
-    while (getline(MyFile, text) && i < length) {
-        vec[i++] = std::stoi(text);
+void check_order(int *array, int len){
+  for(int i = 0; i < len - 1; i++){
+    if(array[i] > array[i + 1]) {
+      std::cerr << "Values [" << array[i] << ", " << array[i+1] << "] aren't ordered. Their positions are [" << i << ", " << i+1 << "]" << endl;
+      throw "Result array not sorted";
     }
-
-    MyFile.close();
-
-    return vec;
-}
-
-int *arrayGenerator(int size) {
-    int *vec = static_cast<int *>(calloc(size, sizeof(int)));
-
-    for (int i = 0; i < size; i++) {
-        vec[i] = 1 + rand() % size;
-    }
-
-    return vec;
+  }
+  cout << "Result array correctely ordered" << endl;
 }
 
 void print_array(int *a, int len) {
