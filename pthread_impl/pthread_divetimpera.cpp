@@ -16,9 +16,10 @@ mydata_t **tasks;
 
 int *array;
 int *tmp_array;
-pthread_t *threads;
+
 pthread_cond_t *cond;
 pthread_mutex_t *mutex;
+
 
 void *worker(void *args){
   int myidx = *((int *) args);
@@ -78,7 +79,6 @@ void *worker(void *args){
     tasks[myidx] = NULL;
     pthread_mutex_unlock(&mutex[myidx]);
 
-
     // combines the two ordered subarrays
     right = half->right;
     merge(array, tmp_array, left, (left + right - 1) /2, right - 1);
@@ -98,6 +98,7 @@ void *worker(void *args){
     pthread_mutex_unlock(&mutex[elem->mitt]);
   }
 
+  free(args);
   return NULL;
 }
 
@@ -111,20 +112,23 @@ int main(int argc, char *argv[]) {
 
     clock_t start = clock();
 
-    threads = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
     cond = (pthread_cond_t *) malloc(num_threads * sizeof(pthread_cond_t));
     mutex = (pthread_mutex_t *) malloc(num_threads * sizeof(pthread_mutex_t));
     tasks = (mydata_t **) malloc(num_threads * sizeof(mydata_t *));
 
     // create threads
-    int *tmp;
+    int *tmp_idx;
+    pthread_t thread_zero, tmp_thread;
     for(int j = 0; j < num_threads; j++){
       pthread_mutex_init(&mutex[j], NULL);
       pthread_cond_init(&cond[j], NULL);
-      tmp = (int *) malloc(sizeof(int));
-      *tmp = j;
-      pthread_create(&threads[j], nullptr, worker, (void *) tmp);
-
+      tmp_idx = (int *) malloc(sizeof(int));
+      *tmp_idx = j;
+      if(j == 0){
+        pthread_create(&thread_zero, nullptr, worker, (void *) tmp_idx);
+      } else {
+        pthread_create(&tmp_thread, nullptr, worker, (void *) tmp_idx);
+      }
     }
 
     mydata_t *main_task = (mydata_t *) malloc(sizeof(mydata_t));
@@ -139,9 +143,7 @@ int main(int argc, char *argv[]) {
     pthread_mutex_unlock(&mutex[0]);
 
     // waiting threads
-    for(int j = 0; j < num_threads; j++){
-        pthread_join(threads[j], nullptr);
-    }
+    pthread_join(thread_zero, nullptr);
 
     clock_t end = clock();
     common_end(start, end, array, len);
