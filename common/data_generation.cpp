@@ -7,7 +7,6 @@ using std::endl;
 using std::flush;
 using std::cerr;
 
-
 int *arrayGenerator(int size, unsigned int seed) {
 
   srand(seed);
@@ -31,12 +30,22 @@ void check_order(int *array, int len){
   cout << "The resulting array is correctly sorted in non-descending order." << endl;
 }
 
-void error_args(int *num_threads){
-  std::cerr << "Please specify the length of the array" << (num_threads != NULL ? ", number of threads" : "") << " and optionally the seed for the random generator" << endl;
+
+void error_args(int *grain, int *num_threads){
+  string str_extra_args = "";
+  if(grain){
+    str_extra_args.append(", the grain of the problem");
+  }
+
+  if(num_threads){
+    str_extra_args.append(", number of threads");
+  }
+
+  std::cerr << "Please specify the length of the array" << str_extra_args << " and optionally the seed for the random generator" << endl;
   throw "Missing arguments";
 }
 
-int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
+int* common_begin(int argc, char **argv, uint64_t *array_len, int *grain, int *num_threads){
   unsigned int seed;
   int *array;
 
@@ -47,15 +56,33 @@ int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
   if(argc > 1) {
     *array_len = std::stoull(argv[1]);
 
+    string str_extra_args = "";
     int total_args = 2;
-    if(num_threads != NULL){
-      if(argc > 2){
-        *num_threads = std::stoull(argv[2]);
-        total_args++;
+    if(num_threads && grain){ // case pthread
+      if(argc > 3){
+        total_args += 2;
+        *grain = std::stoull(argv[2]);
+        *num_threads = std::stoull(argv[3]);
+
+        str_extra_args = ", grain: ";
+        str_extra_args.append(argv[2]);
+        str_extra_args.append(", num_threads: ");
+        str_extra_args.append(argv[3]);
       } else {
-        error_args(num_threads);
+        error_args(grain, num_threads);
       }
-    }
+
+    } else if(grain){ // case mpi (and special case pthread uncontrolled)
+      if(argc > 2){
+        total_args++;
+        *grain = std::stoull(argv[2]);
+
+        str_extra_args = ", grain: ";
+        str_extra_args.append(argv[2]);
+      } else {
+        error_args(grain, num_threads);
+      }
+    } // else case serial
 
     if(argc > total_args) {
       seed = std::stoull(argv[total_args]);
@@ -63,14 +90,9 @@ int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
       seed = time(NULL);
     }
 
-    string str_thread = "";
-    if(num_threads) {
-      str_thread = ", num_threads: ";
-      str_thread.append(argv[2]);
-    }
-    cout << "Arguments are len: " << *array_len << str_thread << ", seed: " << seed << endl;
+    cout << "Arguments are len: " << *array_len << str_extra_args << ", seed: " << seed << endl;
   } else {
-    error_args(num_threads);
+    error_args(grain, num_threads);
   }
 
   cout << "Generating data... " << flush;

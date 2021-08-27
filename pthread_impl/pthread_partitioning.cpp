@@ -18,9 +18,9 @@ int main(int argc, char *argv[]) {
     uint64_t len;
     int *originalArray;
     pthread_t *threads;
-    int num_threads;
+    int num_threads, grain;
 
-    originalArray = common_begin(argc, argv, &len, &num_threads);
+    originalArray = common_begin(argc, argv, &len, &grain, &num_threads);
 
     clock_t start = clock();
 

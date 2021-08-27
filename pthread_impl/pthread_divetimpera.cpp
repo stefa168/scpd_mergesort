@@ -99,9 +99,9 @@ void *function_worker(void *args){
 
 int main(int argc, char *argv[]) {
     uint64_t len;
-    int num_threads;
+    int num_threads, grain;
 
-    array = common_begin(argc, argv, &len, &num_threads);
+    array = common_begin(argc, argv, &len, &grain, &num_threads);
     tmp_array = (int *) malloc(len * sizeof(int));
 
     clock_t start = clock();

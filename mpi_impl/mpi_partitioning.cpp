@@ -16,12 +16,13 @@ int main(int argc, char** argv) {
     clock_t start, end;
 
     uint64_t len;
-    int* originalArray;
+    int *originalArray;
+    int grain;
 
 
     if(myid == 0) {
 
-      originalArray = common_begin(argc, argv, &len, NULL);
+      originalArray = common_begin(argc, argv, &len, &grain, NULL);
 
       start = clock();
 

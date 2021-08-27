@@ -70,8 +70,9 @@ void pmerge(int *arr, uint64_t size) {
 int main(int argc, char *argv[]) {
     uint64_t len;
     int *originalArray;
+    int grain;
 
-    originalArray = common_begin(argc, argv, &len, NULL);
+    originalArray = common_begin(argc, argv, &len, &grain, NULL);
 
     clock_t start = clock();
     pmerge(originalArray, len - 1);

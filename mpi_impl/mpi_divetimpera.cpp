@@ -35,13 +35,13 @@ int main(int argc, char** argv) {
     uint64_t array_len;
 
     clock_t start, end;
+    int grain;
 
     int dest, span, init_span, mitt;
 
 
     if (myid == 0) {
 
-      array = common_begin(argc, argv, &array_len, NULL);
 
       start = clock();
 

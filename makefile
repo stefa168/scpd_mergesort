@@ -76,33 +76,39 @@ clean:
 	@echo "Cleaning..."
 	@rm -f build/* bin/*
 
+env:
+	@echo "Creating environment..."
+	@mkdir -p bin build
+
 serial: bin/serial
 	@echo "Run serial $(LEN) $(SEED)"
 	@bin/serial $(LEN) $(SEED)
 
 pthread_divetimpera: bin/pthread_divetimpera
-	@echo "Run pthread_divetimpera $(LEN) $(NCO) $(SEED)"
-	@bin/pthread_divetimpera $(LEN) $(NCO) $(SEED)
+	@echo "Run pthread_divetimpera $(LEN) $(GRAIN) $(NCO) $(SEED)"
+	@bin/pthread_divetimpera $(LEN) $(GRAIN) $(NCO) $(SEED)
 
 pthread_divetimpera_uncontrolled: bin/pthread_divetimpera_uncontrolled
-	@echo "Run pthread_divetimpera_uncontrolled $(LEN) $(SEED)"
-	@bin/pthread_divetimpera_uncontrolled $(LEN) $(SEED)
+	@echo "Run pthread_divetimpera_uncontrolled $(LEN) $(GRAIN) $(SEED)"
+	@bin/pthread_divetimpera_uncontrolled $(LEN) $(GRAIN) $(SEED)
 
 pthread_partitioning: bin/pthread_partitioning
-	@echo "Run pthread_partitioning $(LEN) $(NCO) $(SEED)"
-	@bin/pthread_partitioning $(LEN) $(NCO) $(SEED)
+	@echo "Run pthread_partitioning $(LEN) $(GRAIN) $(NCO) $(SEED)"
+	@bin/pthread_partitioning $(LEN) $(GRAIN) $(NCO) $(SEED)
 
 mpi_divetimpera: bin/mpi_divetimpera
-	@echo "Run mpi -np $(NCO) mpi_divetimpera $(LEN) $(SEED)"
-	@$(MPIRUN) -np $(NCO) ./bin/mpi_divetimpera $(LEN) $(SEED)
+	@echo "Run mpi -np $(NCO) mpi_divetimpera $(LEN) $(GRAIN) $(SEED)"
+	@$(MPIRUN) -np $(NCO) ./bin/mpi_divetimpera $(LEN) $(GRAIN) $(SEED)
 
 mpi_partitioning: bin/mpi_partitioning
-	@echo "Run mpi -np $(NCO) mpi_partitioning $(LEN) $(SEED)"
-	@$(MPIRUN) -np $(NCO) ./bin/mpi_partitioning $(LEN) $(SEED)
+	@echo "Run mpi -np $(NCO) mpi_partitioning $(LEN) $(GRAIN) $(SEED)"
+	@$(MPIRUN) -np $(NCO) ./bin/mpi_partitioning $(LEN) $(GRAIN) $(SEED)
 
 help:
 	@echo "Usage: make [options] [args] [other flags]"
 	@echo -e "Options: "
+	@echo -e "  env\t\t\tcreate the necessary environment."
+	@echo -e "  clean\t\t\tclean directory build and bin."
 	@echo -e "  serial\t\t\texecute sequential mergesort."
 	@echo -e "  pthread_divetimpera\t\texecute pthread mergesort with paradigm divide et impera."
 	@echo -e "  pthread_divetimpera_uncontrolled\texecute pthread mergesort with paradigm divide et impera without a limit numbers of threads."
@@ -112,6 +118,7 @@ help:
 	@echo ""
 	@echo -e "Args can be"
 	@echo -e "  LEN: length of the array"
+	@echo -e "  GRAIN: grain of the problem -> (to use with mpi and pthread implementation)"
 	@echo -e "  NCO: Number of CONcorrents executions -> number of processes/threads (to use with mpi and pthread implementation)"
 	@echo -e "  SEED: it is an optional argument and sets the seed of the random generator"
 	@echo ""
