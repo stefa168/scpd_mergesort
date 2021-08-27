@@ -18,7 +18,8 @@ P0 P1 P2 P3 P4 P5 P6 P7
 
 */
 
-
+// it must be a negative number.
+#define EXIT_VAL -8
 
 int main(int argc, char** argv) {
     int myid;
@@ -53,6 +54,11 @@ int main(int argc, char** argv) {
     } else {
       // processes in the internal nodes of the tree: receive all data (span, array_len and array)
       MPI_Recv(&span, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      if(span == EXIT_VAL){ // exit value
+        MPI_Barrier(MPI_COMM_WORLD);
+        MPI_Finalize();
+        return 0;
+      }
       mitt = status.MPI_SOURCE % num_procs;
       init_span = span;
 
@@ -65,7 +71,7 @@ int main(int argc, char** argv) {
 
     dest = myid + span;
     span = span / 2;
-    while(dest > myid){   // when span to previous cycle was zero
+    while(array_len > grain && dest > myid){   // when span to previous cycle was zero
       // divide array
       array_len = array_len / 2;
 
@@ -79,11 +85,8 @@ int main(int argc, char** argv) {
       span = span / 2;
     }
 
-    /*
-     * operations inside the "if" are necessary but the control of the "if" is useless,
-     * it was written for any future extra conditions in the while
-     * (e.g. adding a gain for the subarray size)
-    */
+
+    // only if it sent to all process
     if(span == 0) {
       span = 1;
       dest = myid + span;
@@ -92,7 +95,7 @@ int main(int argc, char** argv) {
     // sorted first half of array
     merge_sort(array, tmp_array, 0, array_len - 1);
 
-    while(span <= init_span){
+    while(array_len > grain && span <= init_span){
       // get the second half of the array computed by the other process
       MPI_Recv(&array[array_len], array_len, MPI_INT, dest, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
@@ -106,6 +109,11 @@ int main(int argc, char** argv) {
     }
 
     if(myid == 0) {
+      int exit = EXIT_VAL;
+      for(int i = 1; i < num_procs; i++){
+        MPI_Send(&exit, 1, MPI_INT, i, 0, MPI_COMM_WORLD);
+      }
+
       ch.end_chrono();
       common_end(ch.get_diff(), array, array_len);
 
