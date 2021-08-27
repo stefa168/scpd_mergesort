@@ -2,9 +2,6 @@
 
 #include <cstdint>
 #include <cstring>
-#include <iostream>
-#include <pthread.h>
-#include <chrono>
 
 typedef struct {
     int *arr;

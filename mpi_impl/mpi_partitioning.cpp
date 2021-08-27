@@ -1,6 +1,7 @@
 #include "mpi_partitioning.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
+#include "../common/mychrono.c"
 
 using namespace std;
 
@@ -13,19 +14,17 @@ int main(int argc, char** argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
-    clock_t start, end;
-
     uint64_t len;
-    int *originalArray;
+    int *originalArray = NULL;
     int grain;
 
+    Mychrono ch;
 
     if(myid == 0) {
 
       originalArray = common_begin(argc, argv, &len, &grain, NULL);
 
-      start = clock();
-
+      ch.start_chrono();
     }
 
     // send len array to all process in broadcast
@@ -62,8 +61,8 @@ int main(int argc, char** argv) {
       merge_size(sorted, other_array, size, len);
 #endif
 
-      end = clock();
-      common_end(start, end, sorted, len);
+      ch.end_chrono();
+      common_end(ch.get_diff(), sorted, len);
 
       free(sorted);
       free(other_array);

@@ -1,9 +1,7 @@
 #include "pthread_divetimpera.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
-
-using std::cout;
-using std::endl;
+#include "../common/mychrono.c"
 
 
 mydata_t **tasks;
@@ -101,10 +99,12 @@ int main(int argc, char *argv[]) {
     uint64_t len;
     int num_threads, grain;
 
+    Mychrono ch;
+
     array = common_begin(argc, argv, &len, &grain, &num_threads);
     tmp_array = (int *) malloc(len * sizeof(int));
 
-    clock_t start = clock();
+    ch.start_chrono();
 
     cond = (pthread_cond_t *) malloc(num_threads * sizeof(pthread_cond_t));
     mutex = (pthread_mutex_t *) malloc(num_threads * sizeof(pthread_mutex_t));
@@ -139,8 +139,8 @@ int main(int argc, char *argv[]) {
     // waiting threads
     pthread_join(thread_zero, nullptr);
 
-    clock_t end = clock();
-    common_end(start, end, array, len);
+    ch.end_chrono();
+    common_end(ch.get_diff(), array, len);
     free(array);
 
     return 0;

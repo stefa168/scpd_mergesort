@@ -109,9 +109,8 @@ int* common_begin(int argc, char **argv, uint64_t *array_len, int *grain, int *n
 }
 
 
-void common_end(clock_t start, clock_t end, int *array, uint64_t array_len){
-  double elapsed_time = double(end - start) / CLOCKS_PER_SEC;
-  cout << "Done. Elapsed_time: " << elapsed_time << " sec" << endl;
+void common_end(double time, int *array, uint64_t array_len){
+  cout << "Done. Elapsed_time: " << time << " sec" << endl;
 
   check_order(array, array_len);
 #ifdef PRINT_ARRAY

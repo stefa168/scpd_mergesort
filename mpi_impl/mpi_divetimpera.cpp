@@ -1,8 +1,8 @@
 #include "mpi_divetimpera.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
+#include "../common/mychrono.c"
 
-using namespace std;
 
 /*
 
@@ -33,17 +33,17 @@ int main(int argc, char** argv) {
 
     int *array, *tmp_array;
     uint64_t array_len;
+    int grain = 0;
 
-    clock_t start, end;
-    int grain;
+    int dest, span, init_span, mitt = -1;
 
-    int dest, span, init_span, mitt;
-
+    Mychrono ch;
 
     if (myid == 0) {
 
 
-      start = clock();
+      array = common_begin(argc, argv, &array_len, &grain, NULL);
+      ch.start_chrono();
 
       tmp_array = (int *) malloc(array_len * sizeof(int));
 
@@ -106,8 +106,8 @@ int main(int argc, char** argv) {
     }
 
     if(myid == 0) {
-      end = clock();
-      common_end(start, end, array, array_len);
+      ch.end_chrono();
+      common_end(ch.get_diff(), array, array_len);
 
     } else {
       // send subarray sorted
@@ -116,7 +116,6 @@ int main(int argc, char** argv) {
 
     free(array);
     free(tmp_array);
-
 
     MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();

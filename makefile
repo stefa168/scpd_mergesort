@@ -7,6 +7,11 @@ MPIRUN = mpirun
 # DEFMACRO can be used to insert anything, not just the macro definition
 
 ################################################
+build/mychrono.o:
+	@echo "Building mychrono.o ..."
+	@$(CPP) $(CFLAGS) $(DEFMACRO) -c common/mychrono.cpp -o build/mychrono.o
+
+################################################
 build/data_generation.o:
 	@echo "Building data_generation.o ..."
 	@$(CPP) $(CFLAGS) $(DEFMACRO) -c common/data_generation.cpp -o build/data_generation.o
@@ -20,7 +25,7 @@ build/serial.o:
 	@echo "Building serial.o ..."
 	@$(CPP) $(CFLAGS) $(DEFMACRO) -c serial_impl/serial.cpp -o build/serial.o
 
-bin/serial: build/serial.o build/data_generation.o build/merge_implementations.o
+bin/serial: build/serial.o build/data_generation.o build/merge_implementations.o build/mychrono.o
 	@echo "Creating of the serial executable..."
 	@$(CPP) -o $@ $^
 
@@ -30,7 +35,7 @@ build/pthread_divetimpera.o:
 	@echo "Building pthread_divetimpera.o ..."
 	@$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_divetimpera.cpp -o build/pthread_divetimpera.o
 
-bin/pthread_divetimpera: build/pthread_divetimpera.o build/data_generation.o build/merge_implementations.o
+bin/pthread_divetimpera: build/pthread_divetimpera.o build/data_generation.o build/merge_implementations.o build/mychrono.o
 	@echo "Creating of the pthread_divetimpera executable..."
 	@$(CPP) -pthread -o $@ $^
 
@@ -39,7 +44,7 @@ build/pthread_divetimpera_uncontrolled.o:
 	@echo "Building pthread_divetimpera_uncontrolled.o ..."
 	@$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_divetimpera_uncontrolled.cpp -o build/pthread_divetimpera_uncontrolled.o
 
-bin/pthread_divetimpera_uncontrolled: build/pthread_divetimpera_uncontrolled.o build/data_generation.o build/merge_implementations.o
+bin/pthread_divetimpera_uncontrolled: build/pthread_divetimpera_uncontrolled.o build/data_generation.o build/merge_implementations.o build/mychrono.o
 	@echo "Creating of the pthread_divetimpera_uncontrolled executable..."
 	@$(CPP) -pthread -o $@ $^
 
@@ -48,7 +53,7 @@ build/pthread_partitioning.o:
 	@echo "Building pthread_partitioning.o ..."
 	@$(CPP) $(CFLAGS) $(DEFMACRO) -pthread -c pthread_impl/pthread_partitioning.cpp -o build/pthread_partitioning.o
 
-bin/pthread_partitioning: build/pthread_partitioning.o build/data_generation.o build/merge_implementations.o
+bin/pthread_partitioning: build/pthread_partitioning.o build/data_generation.o build/merge_implementations.o build/mychrono.o
 	@echo "Creating of the pthread_partitioning executable..."
 	@$(CPP) -pthread -o $@ $^
 
@@ -58,7 +63,7 @@ build/mpi_divetimpera.o:
 	@echo "Building mpi_divetimpera.o ..."
 	@$(MPICPP) $(CFLAGS) $(DEFMACRO) -c mpi_impl/mpi_divetimpera.cpp -o build/mpi_divetimpera.o
 
-bin/mpi_divetimpera: build/mpi_divetimpera.o build/data_generation.o build/merge_implementations.o
+bin/mpi_divetimpera: build/mpi_divetimpera.o build/data_generation.o build/merge_implementations.o build/mychrono.o
 	@echo "Creating of the mpi_divetimpera executable..."
 	@$(MPICPP) -o $@ $^
 
@@ -67,7 +72,7 @@ build/mpi_partitioning.o:
 	@echo "Building mpi_partitioning.o ..."
 	@$(MPICPP) $(CFLAGS) $(DEFMACRO) -c mpi_impl/mpi_partitioning.cpp -o build/mpi_partitioning.o
 
-bin/mpi_partitioning: build/mpi_partitioning.o build/data_generation.o build/merge_implementations.o
+bin/mpi_partitioning: build/mpi_partitioning.o build/data_generation.o build/merge_implementations.o build/mychrono.o
 	@echo "Creating of the mpi_partitioning executable..."
 	@$(MPICPP) -o $@ $^
 

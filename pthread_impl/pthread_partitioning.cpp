@@ -1,11 +1,8 @@
 #include "pthread_partitioning.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
+#include "../common/mychrono.c"
 
-using std::cout;
-using std::endl;
-using std::flush;
-using std::string;
 
 
 void* p_merge_sort(void *in_args) {
@@ -20,9 +17,11 @@ int main(int argc, char *argv[]) {
     pthread_t *threads;
     int num_threads, grain;
 
+    Mychrono ch;
+
     originalArray = common_begin(argc, argv, &len, &grain, &num_threads);
 
-    clock_t start = clock();
+    ch.start_chrono();
 
     threads = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
     int size =  len / num_threads;
@@ -51,8 +50,9 @@ int main(int argc, char *argv[]) {
           merge_size(originalArray, b, size, len);
     #endif
 
-    clock_t end = clock();
-    common_end(start, end, originalArray, len);
+    ch.end_chrono();
+    common_end(ch.get_diff(), originalArray, len);
+    
     free(originalArray);
     free(b);
 

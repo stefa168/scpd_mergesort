@@ -1,6 +1,7 @@
 #include "pthread_divetimpera_uncontrolled.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
+#include "../common/mychrono.c"
 
 using namespace std;
 
@@ -72,13 +73,15 @@ int main(int argc, char *argv[]) {
     int *originalArray;
     int grain;
 
+    Mychrono ch;
+
     originalArray = common_begin(argc, argv, &len, &grain, NULL);
 
-    clock_t start = clock();
+    ch.start_chrono();
     pmerge(originalArray, len - 1);
-    clock_t end = clock();
+    ch.end_chrono();
 
-    common_end(start, end, originalArray, len);
+    common_end(ch.get_diff(), originalArray, len);
     free(originalArray);
 
     return 0;
