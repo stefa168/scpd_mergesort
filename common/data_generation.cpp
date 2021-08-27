@@ -25,27 +25,36 @@ void check_order(int *array, int len){
   for(int i = 0; i < len - 1; i++){
     if(array[i] > array[i + 1]) {
       cerr << "Values [" << array[i] << ", " << array[i+1] << "] aren't ordered. Their positions are [" << i << ", " << i+1 << "]" << endl;
-      throw "Result array not sorted";
+      throw "Array not sorted";
     }
   }
-  cout << "Result array correctely ordered" << endl;
+  cout << "The resulting array is correctly sorted in non-descending order." << endl;
 }
 
+void error_args(int *num_threads){
+  std::cerr << "Please specify the length of the array" << (num_threads != NULL ? ", number of threads" : "") << " and optionally the seed for the random generator" << endl;
+  throw "Missing arguments";
+}
 
 int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
   unsigned int seed;
   int *array;
 
-  int total_args = 2;
-  if(num_threads != NULL){
-    total_args++;
-  }
+  cout << " ##############################################" << endl;
+  cout << " # Implementation of the mergesort algorithm. #" << endl;
+  cout << " ##############################################" << endl;
 
-  if(argc >= total_args) {
+  if(argc > 1) {
     *array_len = std::stoull(argv[1]);
 
+    int total_args = 2;
     if(num_threads != NULL){
-      *num_threads = std::stoull(argv[2]);
+      if(argc > 2){
+        *num_threads = std::stoull(argv[2]);
+        total_args++;
+      } else {
+        error_args(num_threads);
+      }
     }
 
     if(argc > total_args) {
@@ -54,20 +63,25 @@ int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
       seed = time(NULL);
     }
 
-//    cout << "len: " << *array_len << ", num_threads: " << (num_threads ? *num_threads : -1) << ", seed: " << seed << endl;
-  } else {
-    string str_nthread = "";
-    if(num_threads != NULL){
-      str_nthread = ", number of threads";
+    string str_thread = "";
+    if(num_threads) {
+      str_thread = ", num_threads: ";
+      str_thread.append(argv[2]);
     }
-    std::cerr << "Please specify the length of the array" << str_nthread << " and optionally the seed for the random generator" << endl;
-    throw "Missing arguments";
+    cout << "Arguments are len: " << *array_len << str_thread << ", seed: " << seed << endl;
+  } else {
+    error_args(num_threads);
   }
 
   cout << "Generating data... " << flush;
   array = arrayGenerator(*array_len, seed);
   cout << "Done." << endl << flush;
-  print_array(array, *array_len);
+
+  #ifdef PRINT_ARRAY
+    print_array(array, *array_len);
+  #endif
+
+  cout << "Sorting... " << flush;
 
   return array;
 }
@@ -75,10 +89,12 @@ int* common_begin(int argc, char **argv, uint64_t *array_len, int *num_threads){
 
 void common_end(clock_t start, clock_t end, int *array, uint64_t array_len){
   double elapsed_time = double(end - start) / CLOCKS_PER_SEC;
-  cout << "elapsed_time: " << elapsed_time << " sec" << endl;
+  cout << "Done. Elapsed_time: " << elapsed_time << " sec" << endl;
 
-  print_array(array, array_len);
   check_order(array, array_len);
+#ifdef PRINT_ARRAY
+  print_array(array, array_len);
+#endif
 }
 
 
@@ -103,7 +119,7 @@ void print_array(int *a, uint64_t len) {
             break;
         }
     }
-    cout << "\n" << endl;
+    cout << endl;
 }
 
 

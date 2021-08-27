@@ -14,7 +14,6 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
 
     clock_t start, end;
-    double elapsed_time;
 
     uint64_t len;
     int* originalArray;
@@ -56,24 +55,21 @@ int main(int argc, char** argv) {
       int *other_array = (int *) malloc(len * sizeof(int));
 
       // reorder all subarray (already ordered)
-#ifdef CLASSIC_MERGE
+#ifdef CLASSIC_MERGE_PARTITION
       merge_sort(sorted, other_array, 0, (len - 1));
 #else
       merge_size(sorted, other_array, size, len);
 #endif
 
       end = clock();
-      elapsed_time = double(end - start) / CLOCKS_PER_SEC;
-      std::cout << "elapsed_time: " << elapsed_time << " sec" << std::endl;
-
-      print_array(sorted, len);
-      check_order(sorted, len);
+      common_end(start, end, sorted, len);
 
       free(sorted);
       free(other_array);
+
+      free(originalArray);
     }
 
-    free(originalArray);
     free(sub_array);
     free(tmp_array);
 

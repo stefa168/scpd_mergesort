@@ -45,7 +45,11 @@ int main(int argc, char *argv[]) {
     }
 
     // final merge
-    merge_size(originalArray, b, size, len);
+    #ifdef CLASSIC_MERGE_PARTITION
+          merge_sort(originalArray, b, 0, (len - 1));
+    #else
+          merge_size(originalArray, b, size, len);
+    #endif
 
     clock_t end = clock();
     common_end(start, end, originalArray, len);
