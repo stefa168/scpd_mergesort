@@ -77,6 +77,15 @@ bin/mpi_partitioning: build/mpi_partitioning.o build/data_generation.o build/mer
 	@$(MPICPP) -o $@ $^
 
 ################################################
+build/pingpong.o:
+	@echo "Building pingpong.o ..."
+	@$(MPICPP) $(CFLAGS) $(DEFMACRO) -c common/pingpong.cpp -o build/pingpong.o
+
+bin/pingpong: build/pingpong.o build/mychrono.o
+	@echo "Creating of the pingpong executable..."
+	@$(MPICPP) -o $@ $^
+
+################################################
 clean:
 	@echo "Cleaning..."
 	@rm -f build/* bin/*
@@ -109,11 +118,16 @@ mpi_partitioning: bin/mpi_partitioning
 	@echo "Run mpi -np $(NCO) mpi_partitioning $(LEN) $(GRAIN) $(SEED)"
 	@$(MPIRUN) -np $(NCO) ./bin/mpi_partitioning $(LEN) $(GRAIN) $(SEED)
 
+pingpong: bin/pingpong
+	@echo "Run mpi -np 2 pingpong"
+	@$(MPIRUN) -np 2 ./bin/pingpong
+
 help:
 	@echo "Usage: make [options] [args] [other flags]"
 	@echo -e "Options: "
 	@echo -e "  env\t\t\tcreate the necessary environment."
 	@echo -e "  clean\t\t\tclean directory build and bin."
+	@echo -e "  pingpong\t\t\ttest to get the time of an communication."
 	@echo -e "  serial\t\t\texecute sequential mergesort."
 	@echo -e "  pthread_divetimpera\t\texecute pthread mergesort with paradigm divide et impera."
 	@echo -e "  pthread_divetimpera_uncontrolled\texecute pthread mergesort with paradigm divide et impera without a limit numbers of threads."
