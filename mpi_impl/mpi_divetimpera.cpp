@@ -1,7 +1,7 @@
 #include "mpi_divetimpera.h"
 #include "../common/data_generation.h"
 #include "../common/merge_implementations.h"
-#include "../common/mychrono.c"
+#include "../common/mychrono.cpp"
 
 
 /*
