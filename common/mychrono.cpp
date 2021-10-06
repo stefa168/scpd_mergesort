@@ -4,6 +4,7 @@ using std::chrono::steady_clock;
 using std::chrono::duration_cast;
 using std::chrono::duration;
 using std::chrono::milliseconds;
+using std::chrono::microseconds;
 using std::chrono::time_point;
 
 
@@ -29,7 +30,9 @@ public:
 
   void end_chrono(){
     cend = steady_clock::now();
-    auto d = duration_cast<milliseconds>(cend - cstart);
+    auto d = duration_cast<microseconds>(cend - cstart);
+
+//    auto d = duration_cast<milliseconds>(cend - cstart);
     diff = std::chrono::duration<double>(d).count();
   }
 
