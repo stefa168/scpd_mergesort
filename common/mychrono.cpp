@@ -16,11 +16,11 @@ private:
 
 public:
   Mychrono(){
-    /*
-    cstart = INIT_VALUE;
-    cend = INIT_VALUE;
-    */
-    diff = 0;
+    diff = -1;
+  }
+
+  double get_diff(){
+    return diff;
   }
 
   void start_chrono(){
@@ -28,17 +28,11 @@ public:
   }
 
   void end_chrono(){
-    /*
-    if(cstart == INIT_VALUE){
-      throw "cend() before cstart()";
-    }
-    */
     cend = steady_clock::now();
     auto d = duration_cast<milliseconds>(cend - cstart);
     diff = std::chrono::duration<double>(d).count();
   }
 
-  double get_diff(){
-    return diff;
-  }
+
+
 };
