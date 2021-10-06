@@ -111,16 +111,19 @@ pthread_partitioning: bin/pthread_partitioning
 	@bin/pthread_partitioning $(LEN) $(GRAIN) $(NCO) $(SEED)
 
 mpi_divetimpera: bin/mpi_divetimpera
-	@echo "Run mpi -np $(NCO) mpi_divetimpera $(LEN) $(GRAIN) $(SEED)"
-	@$(MPIRUN) -np $(NCO) ./bin/mpi_divetimpera $(LEN) $(GRAIN) $(SEED)
+	@echo "Make sure you enter the MF option correctly"
+	cat $(MF)
+	$(MPIRUN) -f $(MF) -np $(NCO) bin/mpi_divetimpera $(LEN) $(GRAIN) $(SEED)
 
 mpi_partitioning: bin/mpi_partitioning
-	@echo "Run mpi -np $(NCO) mpi_partitioning $(LEN) $(GRAIN) $(SEED)"
-	@$(MPIRUN) -np $(NCO) ./bin/mpi_partitioning $(LEN) $(GRAIN) $(SEED)
+	@echo "Make sure you enter the MF option correctly"
+	cat $(MF)
+	$(MPIRUN) -f $(MF) -np $(NCO) bin/mpi_partitioning $(LEN) $(GRAIN) $(SEED)
 
 pingpong: bin/pingpong
-	@echo "Run mpi -np 2 pingpong"
-	@$(MPIRUN) -np 2 ./bin/pingpong
+	@echo "Make sure you enter the MF option correctly"
+	cat $(MF)
+	$(MPIRUN) -f $(MF) -np $(NCO) ./bin/pingpong
 
 help:
 	@echo "Usage: make [options] [args] [other flags]"
@@ -139,6 +142,7 @@ help:
 	@echo -e "  LEN: length of the array"
 	@echo -e "  GRAIN: grain of the problem -> (to use with mpi and pthread implementation)"
 	@echo -e "  NCO: Number of CONcorrents executions -> number of processes/threads (to use with mpi and pthread implementation)"
+	@echo -e "  MF: machinefile -> mandatory for running mpi (in this version of makefile)"
 	@echo -e "  SEED: it is an optional argument and sets the seed of the random generator"
 	@echo ""
 	@echo -e "Other flags can be"

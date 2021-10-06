@@ -18,6 +18,9 @@ P0 P1 P2 P3 P4 P5 P6 P7
 
 */
 
+using std::cout;
+using std::endl;
+
 // it must be a negative number.
 #define EXIT_VAL -8
 
@@ -25,10 +28,13 @@ int main(int argc, char** argv) {
     int myid;
     int num_procs;
 
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int proc_name_len;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Get_processor_name(processor_name, &proc_name_len);
 
     MPI_Status status;
 
@@ -36,13 +42,20 @@ int main(int argc, char** argv) {
     uint64_t array_len;
     int grain = 0;
 
-    int dest, span, init_span, mitt = -1;
+    int dest, span, init_span;
+    int mitt = -1;
 
     Mychrono ch;
 
+    printf("i am %d on %s\n", myid, processor_name);
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    int *cursor = (int*) malloc(2 * siezof(int));
+    cursor[0] = &span;
+    cursor[1] = &array_len;
+
     if (myid == 0) {
-
-
+      fflush(stdout);
       array = common_begin(argc, argv, &array_len, &grain, NULL);
       ch.start_chrono();
 
@@ -53,20 +66,17 @@ int main(int argc, char** argv) {
       init_span = span;
     } else {
       // processes in the internal nodes of the tree: receive all data (span, array_len and array)
-      MPI_Recv(&span, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+      MPI_Recv(&cursor, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       if(span == EXIT_VAL){ // exit value
-        MPI_Barrier(MPI_COMM_WORLD);
         MPI_Finalize();
         return 0;
       }
       mitt = status.MPI_SOURCE % num_procs;
       init_span = span;
-
-      MPI_Recv(&array_len, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
       array = (int *) malloc(array_len * sizeof(int));
       tmp_array = (int *) malloc(array_len * sizeof(int));
       MPI_Recv(array, array_len, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+
     }
 
     dest = myid + span;
@@ -76,15 +86,13 @@ int main(int argc, char** argv) {
       array_len = array_len / 2;
 
       // send second half of array
-      MPI_Send(&span, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
-      MPI_Send(&array_len, 1, MPI_INT, dest, 0, MPI_COMM_WORLD);
+      MPI_Send(&cursor, 2, MPI_INT, dest, 0, MPI_COMM_WORLD);
       MPI_Send(&array[array_len], array_len, MPI_INT, dest, 0, MPI_COMM_WORLD);
 
       // calculation of the id of the next process
       dest = myid + span;
       span = span / 2;
     }
-
 
     // only if it sent to all process
     if(span == 0) {
@@ -125,6 +133,5 @@ int main(int argc, char** argv) {
     free(array);
     free(tmp_array);
 
-    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 }

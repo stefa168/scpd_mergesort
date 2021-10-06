@@ -9,10 +9,13 @@ int main(int argc, char** argv) {
     int myid;
     int num_procs;
 
+    char processor_name[MPI_MAX_PROCESSOR_NAME];
+    int proc_name_len;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
+    MPI_Get_processor_name(processor_name, &proc_name_len);
 
     uint64_t len;
     int *originalArray = NULL;
@@ -20,8 +23,11 @@ int main(int argc, char** argv) {
 
     Mychrono ch;
 
-    if(myid == 0) {
+//    cout << "i am " << myid << " on " << processor_name << endl;
+    printf("i am %d on %s\n", myid, processor_name);
+    MPI_Barrier(MPI_COMM_WORLD);
 
+    if(myid == 0) {
       originalArray = common_begin(argc, argv, &len, &grain, NULL);
 
       ch.start_chrono();
