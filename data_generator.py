@@ -1,3 +1,5 @@
+#!/bin/python3
+
 import random
 
 num_count = int(input("Quanti numeri?"))

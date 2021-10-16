@@ -2,6 +2,9 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=c++,cmake,clion,git
 
 *.bak
+build
+bin
+logs
 
 ### C++ ###
 # Prerequisites
