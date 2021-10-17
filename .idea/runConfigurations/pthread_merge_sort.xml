@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="pthread_merge_sort" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="&quot;$ProjectFileDir$/File_to_order.txt&quot; 5000000" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="parallel_merge_sort" TARGET_NAME="pthread_merge_sort" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="parallel_merge_sort" RUN_TARGET_NAME="pthread_merge_sort">
-    <method v="2">
-      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-    </method>
-  </configuration>
-</component>
