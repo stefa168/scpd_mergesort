@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
     #ifdef CLASSIC_MERGE_PARTITION
           merge_sort(originalArray, b, 0, (len - 1));
     #else
-          merge_size(originalArray, b, size, len, len / size);
+          merge_size(originalArray, b, size, len);
     #endif
 
     ch.end_chrono();
