@@ -5,6 +5,8 @@
 build
 bin
 logs
+*.log
+*.png
 
 ### C++ ###
 # Prerequisites
