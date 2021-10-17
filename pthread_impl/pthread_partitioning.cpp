@@ -34,7 +34,11 @@ int main(int argc, char *argv[]) {
         args->arr = originalArray;
         args->b = b;
         args->left = j * size;
-        args->right = (j + 1) * size-1;
+        if(j == num_threads - 1){
+          args->right = len - 1;
+        } else {
+            args->right = (j + 1) * size - 1;
+        }
         pthread_create(&threads[j], nullptr, p_merge_sort, (void *) args);
     }
 
@@ -47,12 +51,12 @@ int main(int argc, char *argv[]) {
     #ifdef CLASSIC_MERGE_PARTITION
           merge_sort(originalArray, b, 0, (len - 1));
     #else
-          merge_size(originalArray, b, size, len);
+          merge_size(originalArray, b, size, len, len / size);
     #endif
 
     ch.end_chrono();
     common_end(ch.get_diff(), originalArray, len);
-    
+
     free(originalArray);
     free(b);
 

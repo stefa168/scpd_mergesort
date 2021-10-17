@@ -37,16 +37,29 @@ int main(int argc, char** argv) {
     MPI_Bcast(&len, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // divide array into equals subarrays
-    int size = len / num_procs;
+    int sendcounts [num_procs];
+    int displs [num_procs];
+    int rest = len % num_procs;
+    int size_per_process = len / num_procs;
+    int increment = 0;
+    for(int processID = 0; processID < num_procs; processID++){
+       displs[processID] = increment;
+       if(processID == num_procs - 1){
+         sendcounts[processID] = size_per_process + rest;
+       } else {
+         sendcounts[processID] = size_per_process;
+       }
+       increment += sendcounts[processID];
+    }
+    int process_size = sendcounts[myid];
 
     // send the subarrays at other processes
-    int *sub_array = (int *) malloc(size * sizeof(int));;
-    MPI_Scatter(originalArray, size, MPI_INT, sub_array, size, MPI_INT, 0, MPI_COMM_WORLD);
+    int *sub_array = (int *) malloc(process_size * sizeof(int));;
+    MPI_Scatterv(originalArray, sendcounts, displs, MPI_INT, sub_array, process_size, MPI_INT, 0, MPI_COMM_WORLD);
 
     // every process orders its subarray
-    int *tmp_array = (int *) malloc(size * sizeof(int));
-    merge_sort(sub_array, tmp_array, 0, (size - 1));
-
+    int *tmp_array = (int *) malloc(process_size * sizeof(int));
+    merge_sort(sub_array, tmp_array, 0, process_size - 1);
 
     int *sorted = NULL;
     if(myid == 0) {
@@ -54,17 +67,15 @@ int main(int argc, char** argv) {
     }
 
     // gather all subarray in the "main" process
-    MPI_Gather(sub_array, size, MPI_INT, sorted, size, MPI_INT, 0, MPI_COMM_WORLD);
-
+    MPI_Gatherv(sub_array, process_size, MPI_INT, sorted, sendcounts, displs, MPI_INT, 0, MPI_COMM_WORLD);
     if(myid == 0) {
-
       int *other_array = (int *) malloc(len * sizeof(int));
 
       // reorder all subarray (already ordered)
 #ifdef CLASSIC_MERGE_PARTITION
       merge_sort(sorted, other_array, 0, (len - 1));
 #else
-      merge_size(sorted, other_array, size, len);
+      merge_size(sorted, other_array, process_size, len);
 #endif
 
       ch.end_chrono();
