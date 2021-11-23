@@ -5,7 +5,6 @@
 
 
 /*
-
 For a correct execution the number of processes and the length of the array must be a power of 2.
 Example of the tree with 8 processes.
             P0
@@ -38,46 +37,48 @@ int main(int argc, char** argv) {
     MPI_Get_processor_name(processor_name, &proc_name_len);
 
     MPI_Status status;
+    MPI_Request request_rcv[2];
+
 
     int *array, *tmp_array;
     uint64_t array_len;
     int grain = 0;
 
-    int dest, init_span;
+    int dest;
     int mitt = -1;
+    int cursor [2];           // cursor[0]: span, cursor[1]: array_len
+    int counter_active_children = 0;
+    bool local_work_done = false;
 
     Mychrono ch;
 
     printf("i am %d on %s\n", myid, processor_name);
     MPI_Barrier(MPI_COMM_WORLD);
 
-    int cursor [2]; // cursor[0]: span, cursor[1]: array_len
-
     if (myid == 0) {
-      fflush(stdout);
       array = common_begin(argc, argv, &array_len, &grain, NULL);
       cursor[ARRAY_LEN] = (int) array_len;
+
       ch.start_chrono();
 
       tmp_array = (int *) malloc(cursor[ARRAY_LEN] * sizeof(int));
 
       // span between the myid and the id of the other processes based on the level of the tree you are working on
       cursor[SPAN] = num_procs / 2;
-      init_span = cursor[SPAN];
+
     } else {
       // processes in the internal nodes of the tree: receive all data (span, array_len and array)
       MPI_Recv(&cursor, 2, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
       mitt = status.MPI_SOURCE % num_procs;
-      init_span = cursor[SPAN];
       array = (int *) malloc(cursor[ARRAY_LEN] * sizeof(int));
       tmp_array = (int *) malloc(cursor[ARRAY_LEN] * sizeof(int));
       MPI_Recv(array, cursor[ARRAY_LEN], MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
     }
 
     dest = myid + cursor[SPAN];
     cursor[SPAN] = cursor[SPAN] / 2;
     while(dest > myid){   // when span to previous cycle was zero
+
       // divide array
       cursor[ARRAY_LEN] = cursor[ARRAY_LEN] / 2;
 
@@ -88,41 +89,68 @@ int main(int argc, char** argv) {
       // calculation of the id of the next process
       dest = myid + cursor[SPAN];
       cursor[SPAN] = cursor[SPAN] / 2;
+      counter_active_children++;
     }
 
-    // only if it sent to all process
-    if(cursor[SPAN] == 0) {
-      cursor[SPAN] = 1;
-      dest = myid + cursor[SPAN];
-    }
+    // counter_active_children > 0: I have children to receive from
+    // iteration 1: nonblocking request to nth child its sorted subarray + MERGESORT current local subarray
+    // iteration 2: nonblocking request to (n-1)th child its sorted subarray +
+    //              merge current local subarray and required subarray at iteration 1
+    // ...
+    // iteration n - 1: nonblocking request to first child its sorted subarray +
+    //                merge current local subarray subarray and required subarray at iteration n - 2
+    // iteration n: merge local subarray and required subarray at iteration n - 1
+    while(counter_active_children >= 0){
 
-    // sorted first half of array
-    merge_sort(array, tmp_array, 0, cursor[ARRAY_LEN] - 1);
+      // [0]: request to wait at this iteration (== request done at prev iteration)
+      // [1]: request to do at this iteration
+      request_rcv[0] = request_rcv[1];
 
-    while(cursor[SPAN] <= init_span){
-      // get the second half of the array computed by the other process
-      MPI_Recv(&array[cursor[ARRAY_LEN]], cursor[ARRAY_LEN], MPI_INT, dest, MPI_ANY_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+      if(counter_active_children > 0){
+        // calculation of the id of the previous process
+        if(cursor[SPAN] == 0) {
+          cursor[SPAN] = 1;
+        } else {
+          cursor[SPAN] *= 2;
+        }
+        dest = myid + cursor[SPAN];
 
-      // combines the two ordered subarrays
-      cursor[ARRAY_LEN] = 2 * cursor[ARRAY_LEN];
-      merge(array, tmp_array, 0, ((cursor[ARRAY_LEN] - 1) / 2), cursor[ARRAY_LEN] - 1);
+        // get the second half of the array computed by a child process that will be merged in the next iteration
+        MPI_Irecv(&array[cursor[ARRAY_LEN]], cursor[ARRAY_LEN], MPI_INT, dest, 1, MPI_COMM_WORLD, &request_rcv[1]);
+      }
 
-      // calculation of the id of the previous process
-      cursor[SPAN] = cursor[SPAN] * 2;
-      dest = cursor[SPAN] + myid;
+      if(!local_work_done){
+        // sorted first half of array
+        merge_sort(array, tmp_array, 0, cursor[ARRAY_LEN] - 1);
+        local_work_done = true;
+
+      } else {
+        // waiting the data request in the prev iteration
+        MPI_Wait(&request_rcv[0], MPI_STATUS_IGNORE);
+
+        // combines the two ordered subarrays
+        merge(array, tmp_array, 0, (cursor[ARRAY_LEN] - 1) / 2, cursor[ARRAY_LEN] - 1);
+      }
+
+      if(counter_active_children > 0){
+        cursor[ARRAY_LEN] = 2 * cursor[ARRAY_LEN];
+      }
+
+      counter_active_children--;
     }
 
     if(myid == 0) {
       ch.end_chrono();
       common_end(ch.get_diff(), array, cursor[ARRAY_LEN]);
-
     } else {
       // send subarray sorted
-      MPI_Send(array, cursor[ARRAY_LEN], MPI_INT, mitt, 0, MPI_COMM_WORLD);
+      MPI_Send(array, cursor[ARRAY_LEN], MPI_INT, mitt, 1, MPI_COMM_WORLD);
     }
 
     free(array);
     free(tmp_array);
 
+
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
 }
