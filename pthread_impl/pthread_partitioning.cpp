@@ -7,61 +7,68 @@
 int *array;
 int *tmp;
 
-
 void* p_merge_sort(void *in_args) {
   auto *args = (ms_task *) in_args;
-  merge_sort(array, tmp, args->left, args->right);
+  merge_sort(array, tmp, args->left, args->right - 1);
+  free(args);
   pthread_exit(nullptr);
 }
 
 int main(int argc, char *argv[]) {
-    uint64_t len;
-    pthread_t *threads;
-    int num_threads, grain;
+  uint64_t len;
+  pthread_t *threads;
+  int num_threads, grain;
 
-    Mychrono ch;
+  Mychrono ch;
 
-    array = common_begin(argc, argv, &len, &grain, &num_threads);
+  array = common_begin(argc, argv, &len, &grain, &num_threads);
 
-    ch.start_chrono();
+  ch.start_chrono();
 
-    tmp = (int *) malloc(len * sizeof(int));
+  tmp = (int *) malloc(len * sizeof(int));
 
-    threads = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
-    int size =  len / num_threads;
+  threads = (pthread_t *) malloc(num_threads * sizeof(pthread_t));
+  int size =  len / num_threads;
+  int rest = len % num_threads;
 
-    // create threads
-    int sizes[num_threads];
-    for(int j = 0; j < num_threads; j++){
-        ms_task *args;
-        args = (ms_task *) malloc(sizeof(ms_task));
-        args->left = j * size;
-        if(j == num_threads - 1){
-          args->right = len - 1;
-        } else {
-            args->right = (j + 1) * size - 1;
-        }
-        sizes[j] = args->right + 1 - args->left;
-        pthread_create(&threads[j], nullptr, p_merge_sort, (void *) args);
+  // divide array into equals subarrays
+  int sizes[num_threads];
+  for(int j = 0; j < num_threads; j++){
+    sizes[j] = size;
+    if(rest > 0) {
+      sizes[j]++;
+      rest--;
     }
+  }
 
-    // waiting threads
-    for(int j = 0; j < num_threads; j++){
-        pthread_join(threads[j], nullptr);
-    }
+  // create threads
+  int prev_size = 0;
+  for(int j = 0; j < num_threads; j++){
+    ms_task *args;
+    args = (ms_task *) malloc(sizeof(ms_task));
+    args->left = prev_size;
+    args->right = prev_size + sizes[j];
+    prev_size = args->right;
+    pthread_create(&threads[j], nullptr, p_merge_sort, (void *) args);
+  }
 
-    // final merge
-    #ifdef CLASSIC_MERGE_PARTITION
-          merge_sort(array, tmp, 0, (len - 1));
-    #else
-          merge_size(array, tmp, len, sizes, num_threads);
-    #endif
+  // waiting threads
+  for(int j = 0; j < num_threads; j++){
+    pthread_join(threads[j], nullptr);
+  }
 
-    ch.end_chrono();
-    common_end(ch.get_diff(), array, len);
+  // final merge
+#ifdef CLASSIC_MERGE_PARTITION
+  merge_sort(array, tmp, 0, (len - 1));
+#else
+  merge_size(array, tmp, len, sizes, num_threads);
+#endif
 
-    free(array);
-    free(tmp);
+  ch.end_chrono();
+  common_end(ch.get_diff(), array, len);
 
-    return 0;
+  free(array);
+  free(tmp);
+
+  return 0;
 }

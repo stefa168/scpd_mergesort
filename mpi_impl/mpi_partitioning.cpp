@@ -43,13 +43,13 @@ int main(int argc, char** argv) {
     int size_per_process = len / num_procs;
     int increment = 0;
     for(int processID = 0; processID < num_procs; processID++){
-       displs[processID] = increment;
-       if(processID == num_procs - 1){
-         sendcounts[processID] = size_per_process + rest;
-       } else {
-         sendcounts[processID] = size_per_process;
-       }
-       increment += sendcounts[processID];
+      displs[processID] = increment;
+      sendcounts[processID] = size_per_process;
+      if(rest > 0){ // a better distribuition checking if the processes are on the same machine of process 0
+        sendcounts[processID]++;
+        rest--;
+      }
+      increment += sendcounts[processID];
     }
     int process_size = sendcounts[myid];
 
