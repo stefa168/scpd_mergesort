@@ -97,6 +97,7 @@ def main(args):
                 tmp_proc = int(elem.num_proc)
                 if tmp_proc > max_num_proc:
                     max_num_proc = tmp_proc
+                print("t_s: {}, t_p: {}, t_s/t_p: {}".format(serial_time, float(elem.time), serial_time / float(elem.time)))
                 to_plot[type].append(MySpeedup(serial_time / float(elem.time), tmp_proc))
 
     for type, value in to_plot.items():
