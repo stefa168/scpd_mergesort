@@ -3,36 +3,32 @@
 using std::cout;
 using std::endl;
 
-
-void merge_size(int *a, int *b, int size, int len){
-    int num_idx = len / size;
-    index_type indexes[num_idx];
+void merge_size(int *a, int *b, int a_len, int *sizes, int sizes_len){
+    int indexes[sizes_len], idx_max[sizes_len];
     int k, i, found;
 
-    for(i = 0; i < num_idx; i++){
-        indexes[i].i = i * size;
-        if(i == num_idx - 1){
-          indexes[i].max = len;
-        } else {
-          indexes[i].max = (i + 1) * size;
-        }
+    idx_max[0] = sizes[0];
+    indexes[0] = 0;
+    for(i = 1; i < sizes_len; i++){
+        idx_max[i] = idx_max[i - 1] + sizes[i];
+        indexes[i] = idx_max[i - 1];
     }
 
-    for(k = 0; k < len; k++){
+    for(k = 0; k < a_len; k++){
         found = -1;
-        for(i = 0; i < num_idx; i++){
+        for(i = 0; i < sizes_len; i++){
             // se l'indice i è nel suo range
             // o si deve inizializzare found
             // o si è trovato un elemento minore di quello attulamente trovato con found
-            if(indexes[i].i < indexes[i].max && (found == -1 || a[indexes[i].i] < a[indexes[found].i])) {
+            if(indexes[i] < idx_max[i] && (found == -1 || a[indexes[i]] < a[indexes[found]])) {
                 found = i;
             }
         }
-        b[k] = a[indexes[found].i];
-        indexes[found].i++;
+        b[k] = a[indexes[found]];
+        indexes[found]++;
     }
 
-    for(k = 0; k < len; k++){
+    for(k = 0; k < a_len; k++){
         a[k] = b[k];
     }
 }

@@ -3,15 +3,11 @@
 #include <cstdlib>
 #include <cstdint>
 #include <iostream>
+#include <string.h>
 
 
-typedef struct {
-    int i;
-    int max;
-} index_type;
+void merge_size(int *a, int *b, int a_len, int *sizes, int sizes_len);
 
-
-void merge_size(int *a, int *b, int size, int length);
 void merge_sort(int *a, int *b, uint64_t left, uint64_t right);
 
 #ifndef MERGE_LOCAL_MALLOC_IMPL

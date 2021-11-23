@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 #ifdef CLASSIC_MERGE_PARTITION
       merge_sort(sorted, other_array, 0, (len - 1));
 #else
-      merge_size(sorted, other_array, process_size, len);
+      merge_size(sorted, other_array, len, sendcounts, num_procs);
 #endif
 
       ch.end_chrono();

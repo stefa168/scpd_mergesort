@@ -31,6 +31,7 @@ int main(int argc, char *argv[]) {
     int size =  len / num_threads;
 
     // create threads
+    int sizes[num_threads];
     for(int j = 0; j < num_threads; j++){
         ms_task *args;
         args = (ms_task *) malloc(sizeof(ms_task));
@@ -40,6 +41,7 @@ int main(int argc, char *argv[]) {
         } else {
             args->right = (j + 1) * size - 1;
         }
+        sizes[j] = args->right + 1 - args->left;
         pthread_create(&threads[j], nullptr, p_merge_sort, (void *) args);
     }
 
@@ -52,7 +54,7 @@ int main(int argc, char *argv[]) {
     #ifdef CLASSIC_MERGE_PARTITION
           merge_sort(array, tmp, 0, (len - 1));
     #else
-          merge_size(originalArray, b, size, len);
+          merge_size(array, tmp, len, sizes, num_threads);
     #endif
 
     ch.end_chrono();
