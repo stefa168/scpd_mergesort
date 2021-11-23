@@ -4,8 +4,6 @@
 #include <cstring>
 
 typedef struct {
-    int *arr;
-    int *b;
     uint64_t left;
     uint64_t right;
 } ms_task;
